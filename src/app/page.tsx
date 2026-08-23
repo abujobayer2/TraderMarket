@@ -1,69 +1,175 @@
-import Image from "next/image";
+import Link from "next/link";
+import type { Metadata } from "next";
+import { Nav } from "@/components/Nav";
+import { Footer } from "@/components/Footer";
+import { LeaderboardTable } from "@/components/LeaderboardTable";
+import { HeroBidWidget } from "@/components/HeroBidWidget";
+import { getActiveLeaderboard, getPublicStats, minimumBidForPosition } from "@/lib/ranking";
+import { jsonLdScript } from "@/lib/jsonLd";
 
-export default function Home() {
+export const revalidate = 15;
+
+const DESCRIPTION =
+  "TraderMarket is the public prop firm leaderboard. Want a position? Outbid the firm currently holding it — one payment, no subscription. Live rankings updated in real time.";
+
+export const metadata: Metadata = {
+  title: "TraderMarket — The Prop Firm Leaderboard",
+  description: DESCRIPTION,
+  alternates: { canonical: "/" },
+  openGraph: {
+    title: "TraderMarket — The Prop Firm Leaderboard",
+    description: DESCRIPTION,
+    url: "/",
+  },
+  twitter: {
+    title: "TraderMarket — The Prop Firm Leaderboard",
+    description: DESCRIPTION,
+  },
+};
+
+const steps = [
+  {
+    n: "01",
+    title: "List",
+    body: "Submit your prop firm — name, website, logo, and a short description.",
+  },
+  {
+    n: "02",
+    title: "Choose your position",
+    body: "Pick any rank on the leaderboard. Every position has its own current price.",
+  },
+  {
+    n: "03",
+    title: "Outbid & rank",
+    body: "Pay more than the firm currently holding that spot. One payment. No subscription.",
+  },
+];
+
+export default async function HomePage() {
+  const [leaderboard, stats] = await Promise.all([getActiveLeaderboard(), getPublicStats()]);
+  const minimumForFirst = minimumBidForPosition(leaderboard, 1);
+  const newSpotMinimum = minimumBidForPosition(leaderboard, leaderboard.length + 1);
+
+  const leaderboardJsonLd =
+    leaderboard.length > 0
+      ? {
+          "@context": "https://schema.org",
+          "@type": "ItemList",
+          name: "TraderMarket Prop Firm Leaderboard",
+          description: DESCRIPTION,
+          itemListOrder: "https://schema.org/ItemListOrderDescending",
+          numberOfItems: leaderboard.length,
+          itemListElement: leaderboard.map((entry) => ({
+            "@type": "ListItem",
+            position: entry.rank,
+            url: `https://tradermarket.online/firm/${entry.slug}`,
+            name: entry.name,
+          })),
+        }
+      : null;
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert h-5 w-[100px]"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
+    <>
+      {leaderboardJsonLd && (
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: jsonLdScript(leaderboardJsonLd) }}
         />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the{" "}
-            <code className="rounded bg-black/[.06] px-1.5 py-0.5 font-mono text-[0.9em] dark:bg-white/[.08]">
-              page.tsx
-            </code>{" "}
-            file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
+      )}
+      <Nav />
+      <main className="flex-1">
+        <section className="bg-canvas px-6 pb-10 pt-10 sm:pt-14">
+          <div className="mx-auto flex max-w-[720px] flex-col items-center text-center">
+            <div className="flex items-center gap-2 rounded-pill bg-canvas-soft px-4 py-2 text-[14px] leading-[21px] text-body">
+              <span className="relative flex h-2 w-2">
+                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-primary opacity-75" />
+                <span className="relative inline-flex h-2 w-2 rounded-full bg-primary" />
+              </span>
+              <span className="font-semibold text-ink">{stats.activeFirms} firms listed</span>
+              <span className="text-mute">·</span>
+              <span>${stats.totalRevenue.toLocaleString()} in bids</span>
+              <span className="text-mute">·</span>
+              <Link href="#leaderboard" className="font-semibold text-ink hover:text-primary">
+                see board →
+              </Link>
+            </div>
+
+            <h1 className="mt-4 text-[15px] font-medium leading-[22px] text-body-mid sm:text-[16px]">
+              TraderMarket — the prop firm leaderboard where firms outbid each other for rank
+            </h1>
+
+            <div className="mt-8 w-full">
+              <HeroBidWidget
+                minimumBid={minimumForFirst}
+                newSpotMinimum={newSpotMinimum}
+                hasFirms={leaderboard.length > 0}
+              />
+            </div>
+          </div>
+        </section>
+
+        <section id="leaderboard" className="bg-canvas-soft px-6 pb-16 pt-8 sm:pb-24">
+          <div className="mx-auto max-w-[1280px]">
+            <p className="text-[14px] font-medium uppercase leading-[14px] tracking-[1px] text-primary">
+              Live rankings
+            </p>
+            <h2 className="mt-2 text-[24px] font-semibold leading-[30px] tracking-[-0.6px] text-ink sm:text-[32px] sm:leading-[36px]">
+              🏆 Prop firm leaderboard
+            </h2>
+            <div className="mt-6">
+              <LeaderboardTable entries={leaderboard} />
+            </div>
+          </div>
+        </section>
+
+        <section id="how-it-works" className="bg-canvas px-6 py-16 sm:py-24">
+          <div className="mx-auto max-w-[1280px]">
+            <p className="text-[14px] font-medium uppercase leading-[14px] tracking-[1px] text-primary">
+              How it works
+            </p>
+            <h2 className="mt-3 text-[32px] font-medium leading-[36px] tracking-[1px] text-ink sm:text-[48px] sm:leading-[48px] sm:tracking-normal">
+              Three steps to your rank
+            </h2>
+            <div className="mt-10 grid grid-cols-1 gap-6 sm:grid-cols-3">
+              {steps.map((step) => (
+                <div key={step.n} className="rounded-md bg-canvas-soft p-6">
+                  <span className="text-[14px] font-medium uppercase leading-[14px] tracking-[1px] text-body-mid">
+                    {step.n}
+                  </span>
+                  <h3 className="mt-3 text-[24px] font-semibold leading-[30px] tracking-[-0.6px] text-ink">
+                    {step.title}
+                  </h3>
+                  <p className="mt-2 text-[16px] leading-[24px] text-body">{step.body}</p>
+                </div>
+              ))}
+            </div>
+            <p className="mt-8 text-[18px] font-semibold leading-[27px] text-ink">
+              One payment. No subscription.
+            </p>
+          </div>
+        </section>
+
+        <section className="bg-ink px-6 py-16 sm:py-24">
+          <div className="mx-auto flex max-w-[1280px] flex-col items-start justify-between gap-8 sm:flex-row sm:items-center">
+            <div>
+              <h2 className="text-[32px] font-medium leading-[36px] tracking-[1px] text-canvas sm:text-[48px] sm:leading-[48px] sm:tracking-normal">
+                Ready to claim your rank?
+              </h2>
+              <p className="mt-3 max-w-xl text-[18px] leading-[27px] text-canvas-soft/80">
+                Pick a position, name your bid, and pay once. Your rank stays until
+                someone outbids you.
+              </p>
+            </div>
+            <Link
+              href="/list"
+              className="whitespace-nowrap rounded-md bg-primary px-6 py-3 text-[18px] font-semibold leading-[27px] text-on-primary hover:bg-primary-hover"
             >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
-        </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert h-[14px] w-4"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={14}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
+              List your prop firm
+            </Link>
+          </div>
+        </section>
       </main>
-    </div>
+      <Footer />
+    </>
   );
 }
