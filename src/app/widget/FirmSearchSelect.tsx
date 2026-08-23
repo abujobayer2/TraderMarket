@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
+import Image from "next/image";
 import type { LeaderboardEntry } from "@/lib/ranking";
 
 type Props = {
@@ -55,8 +56,7 @@ export function FirmSearchSelect({ firms, value, onChange }: Props) {
         {selected ? (
           <>
             {selected.logoUrl ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img src={selected.logoUrl} alt="" className="h-6 w-6 shrink-0 rounded-sm object-cover" />
+              <Image src={selected.logoUrl} alt="" width={24} height={24} className="h-6 w-6 shrink-0 rounded-sm object-cover" />
             ) : (
               <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-sm bg-canvas-soft text-[11px] font-semibold text-ink">
                 {selected.name.slice(0, 1).toUpperCase()}
@@ -102,8 +102,7 @@ export function FirmSearchSelect({ firms, value, onChange }: Props) {
                   }`}
                 >
                   {f.logoUrl ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img src={f.logoUrl} alt="" className="h-7 w-7 shrink-0 rounded-sm object-cover" />
+                    <Image src={f.logoUrl} alt="" width={28} height={28} className="h-7 w-7 shrink-0 rounded-sm object-cover" />
                   ) : (
                     <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-sm bg-canvas-soft text-[12px] font-semibold text-ink">
                       {f.name.slice(0, 1).toUpperCase()}

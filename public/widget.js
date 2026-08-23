@@ -28,13 +28,15 @@
 
   // Load the same webfonts the main site uses so the embed doesn't fall
   // back to the host page's default sans-serif. Guarded so multiple badges
-  // on one page only fetch it once.
+  // on one page only fetch it once. Only the weights actually rendered by
+  // the RENDERERS below are requested — every extra weight is a font file
+  // this script forces onto someone else's site for nothing.
   if (!document.getElementById("tm-widget-fonts")) {
     var fontLink = document.createElement("link");
     fontLink.id = "tm-widget-fonts";
     fontLink.rel = "stylesheet";
     fontLink.href =
-      "https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@700;800&display=swap";
+      "https://fonts.googleapis.com/css2?family=Inter:wght@600;700&family=Plus+Jakarta+Sans:wght@700&display=swap";
     document.head.appendChild(fontLink);
   }
 

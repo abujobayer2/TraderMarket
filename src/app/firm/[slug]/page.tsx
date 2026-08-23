@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import { Nav } from "@/components/Nav";
@@ -84,8 +85,14 @@ export default async function FirmPage({ params }: { params: Promise<{ slug: str
           <div className="mt-6 rounded-md bg-canvas p-8">
             <div className="flex items-center gap-4">
               {firm.logoUrl ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img src={firm.logoUrl} alt={`${firm.name} logo`} className="h-16 w-16 rounded-md object-cover" />
+                <Image
+                  src={firm.logoUrl}
+                  alt={`${firm.name} logo`}
+                  width={64}
+                  height={64}
+                  priority
+                  className="h-16 w-16 rounded-md object-cover"
+                />
               ) : (
                 <div className="flex h-16 w-16 items-center justify-center rounded-md bg-canvas-soft text-[24px] font-semibold text-ink">
                   {firm.name.slice(0, 1).toUpperCase()}

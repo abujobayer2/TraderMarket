@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import type { LeaderboardEntry } from "@/lib/ranking";
 
 const MEDALS: Record<number, string> = { 1: "🥇", 2: "🥈", 3: "🥉" };
@@ -43,10 +44,12 @@ export function LeaderboardTable({ entries }: { entries: LeaderboardEntry[] }) {
               {MEDALS[entry.rank] ?? `#${entry.rank}`}
             </span>
             {entry.logoUrl ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img
+              <Image
                 src={entry.logoUrl}
                 alt={`${entry.name} logo`}
+                width={48}
+                height={48}
+                loading={entry.rank <= 3 ? "eager" : "lazy"}
                 className="h-12 w-12 shrink-0 rounded-md object-cover"
               />
             ) : (

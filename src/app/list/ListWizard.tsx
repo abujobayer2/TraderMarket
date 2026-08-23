@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
+import Image from "next/image";
 import { useRouter, useSearchParams } from "next/navigation";
 import type { LeaderboardEntry } from "@/lib/ranking";
 import { CurrencyIcon } from "@/components/CurrencyIcon";
@@ -265,10 +266,11 @@ export function ListWizard() {
         {showPreview && (
           <div className="flex items-center gap-4 rounded-md bg-canvas-soft p-4">
             {previewLogoUrl ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img
+              <Image
                 src={previewLogoUrl}
                 alt=""
+                width={48}
+                height={48}
                 className="h-12 w-12 shrink-0 rounded-md bg-canvas object-cover"
               />
             ) : (
@@ -319,10 +321,11 @@ export function ListWizard() {
                   <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-canvas-soft text-[18px]">
                     {MEDALS[selectedPositionRow.position] ??
                       (selectedPositionRow.logoUrl ? (
-                        // eslint-disable-next-line @next/next/no-img-element
-                        <img
+                        <Image
                           src={selectedPositionRow.logoUrl}
                           alt=""
+                          width={36}
+                          height={36}
                           className="h-9 w-9 rounded-md object-cover"
                         />
                       ) : (
@@ -391,8 +394,7 @@ export function ListWizard() {
                             <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-canvas-soft text-[16px]">
                               {MEDALS[row.position] ??
                                 (row.logoUrl ? (
-                                  // eslint-disable-next-line @next/next/no-img-element
-                                  <img src={row.logoUrl} alt="" className="h-8 w-8 rounded-md object-cover" />
+                                  <Image src={row.logoUrl} alt="" width={32} height={32} className="h-8 w-8 rounded-md object-cover" />
                                 ) : (
                                   <span className="text-[12px] font-semibold text-body-mid">
                                     #{row.position}

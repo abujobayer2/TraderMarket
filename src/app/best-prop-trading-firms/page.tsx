@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import type { Metadata } from "next";
 import { Nav } from "@/components/Nav";
 import { Footer } from "@/components/Footer";
@@ -145,8 +146,14 @@ export default async function BestPropTradingFirmsPage() {
                           #{firm.rank}
                         </span>
                         {firm.logoUrl ? (
-                          // eslint-disable-next-line @next/next/no-img-element
-                          <img src={firm.logoUrl} alt={`${firm.name} logo`} className="h-10 w-10 rounded-md object-cover" />
+                          <Image
+                            src={firm.logoUrl}
+                            alt={`${firm.name} logo`}
+                            width={40}
+                            height={40}
+                            loading={firm.rank <= 3 ? "eager" : "lazy"}
+                            className="h-10 w-10 rounded-md object-cover"
+                          />
                         ) : null}
                         <div>
                           <Link
