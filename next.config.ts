@@ -16,7 +16,10 @@ const csp = [
   "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
   "img-src 'self' https: data:",
   "font-src 'self' data: https://fonts.gstatic.com",
-  "connect-src 'self'",
+  // DataFast's SDK (client-bundled, runs from 'self') posts events to its
+  // own API — without this, every tracked pageview/event is silently
+  // dropped by the browser, not by the SDK.
+  "connect-src 'self' https://datafa.st",
   "frame-ancestors 'self'",
   "base-uri 'self'",
   "form-action 'self'",

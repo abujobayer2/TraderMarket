@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Inter, Plus_Jakarta_Sans } from "next/font/google";
 import { jsonLdScript } from "@/lib/jsonLd";
+import { Analytics } from "@/components/Analytics";
 import "./globals.css";
 
 const inter = Inter({
@@ -119,7 +120,10 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
           dangerouslySetInnerHTML={{ __html: jsonLdScript(jsonLd) }}
         />
       </head>
-      <body className="min-h-full flex flex-col bg-canvas text-ink">{children}</body>
+      <body className="min-h-full flex flex-col bg-canvas text-ink">
+        <Analytics />
+        {children}
+      </body>
     </html>
   );
 }
