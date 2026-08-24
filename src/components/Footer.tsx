@@ -18,6 +18,9 @@ export function Footer() {
           <Link href="/best-prop-trading-firms" className="hover:text-canvas">
             Rankings
           </Link>
+          <Link href="/funded-trading-programs" className="hover:text-canvas">
+            Funded Programs Guide
+          </Link>
           <Link href="/list" className="hover:text-canvas">
             List your firm
           </Link>

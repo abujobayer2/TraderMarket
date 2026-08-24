@@ -37,6 +37,10 @@ const faqs = [
     q: "How often does this page update?",
     a: "The ranking data refreshes at most every 15 seconds and reflects the live TraderMarket leaderboard — not a static snapshot re-published periodically.",
   },
+  {
+    q: "Do these firms actually pay after you pass the challenge?",
+    a: "Bid amount says nothing about payout reliability — that's a separate question you need to research per firm (payout proof, track record, and terms).",
+  },
 ];
 
 const itemListJsonLd = (leaderboard: Awaited<ReturnType<typeof getActiveLeaderboard>>) => ({
@@ -188,7 +192,20 @@ export default async function BestPropTradingFirmsPage() {
               {faqs.map((item) => (
                 <div key={item.q}>
                   <p className="text-[16px] font-semibold leading-[24px] text-ink">{item.q}</p>
-                  <p className="mt-1 text-[16px] leading-[24px] text-body">{item.a}</p>
+                  <p className="mt-1 text-[16px] leading-[24px] text-body">
+                    {item.a}
+                    {item.q.startsWith("Do these firms actually pay") && (
+                      <>
+                        {" "}
+                        <Link
+                          href="/funded-trading-programs"
+                          className="font-semibold text-ink hover:text-primary"
+                        >
+                          Read the funded trading programs guide →
+                        </Link>
+                      </>
+                    )}
+                  </p>
                 </div>
               ))}
             </div>

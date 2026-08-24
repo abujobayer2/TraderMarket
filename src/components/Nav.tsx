@@ -15,6 +15,9 @@ export function Nav() {
           <Link href="/#how-it-works" className="text-[16px] text-ink hover:text-body">
             How it works
           </Link>
+          <Link href="/funded-trading-programs" className="text-[16px] text-ink hover:text-body">
+            Guide
+          </Link>
           <Link href="/rules" className="text-[16px] text-ink hover:text-body">
             Rules
           </Link>

@@ -46,12 +46,12 @@ const FIRMS = [
     bidAmount: 450,
   },
   {
-    name: "The5ers",
+    name: "ForRealFunding",
     description:
-      "The5ers is a proprietary trading firm offering funded trading programs, instant funding options, trader education, and scaling opportunities.",
-    logoUrl: "https://www.google.com/s2/favicons?domain=the5ers.com&sz=128",
-    websiteUrl: "https://the5ers.com",
-    bidAmount: 400,
+      "ForRealFunding is a proprietary trading firm offering funded trading programs and evaluation challenges, with traders paid out after passing verification.",
+    logoUrl: "https://www.google.com/s2/favicons?domain=forrealfunding.com&sz=128",
+    websiteUrl: "https://forrealfunding.com",
+    bidAmount: 420,
   },
   {
     name: "FundingPips",
@@ -59,15 +59,7 @@ const FIRMS = [
       "FundingPips is a proprietary trading firm offering funded trading programs and evaluation-based opportunities for traders.",
     logoUrl: "https://www.google.com/s2/favicons?domain=fundingpips.com&sz=128",
     websiteUrl: "https://fundingpips.com",
-    bidAmount: 350,
-  },
-  {
-    name: "Alpha Capital Group",
-    description:
-      "Alpha Capital Group is a proprietary trading firm focused on providing traders with evaluation programs and access to funded trading opportunities.",
-    logoUrl: "https://www.google.com/s2/favicons?domain=alphacapitalgroup.uk&sz=128",
-    websiteUrl: "https://alphacapitalgroup.uk",
-    bidAmount: 300,
+    bidAmount: 400,
   },
   {
     name: "E8 Markets",
@@ -75,7 +67,87 @@ const FIRMS = [
       "E8 Markets is a proprietary trading firm offering trading evaluations and funded account programs for traders.",
     logoUrl: "https://www.google.com/s2/favicons?domain=e8markets.com&sz=128",
     websiteUrl: "https://e8markets.com",
-    bidAmount: 250,
+    bidAmount: 380,
+  },
+  {
+    name: "Apex Trader Funding",
+    description:
+      "Apex Trader Funding is a large futures-focused proprietary trading firm offering evaluation accounts and funded trading opportunities.",
+    logoUrl: "https://www.google.com/s2/favicons?domain=apextraderfunding.com&sz=128",
+    websiteUrl: "https://apextraderfunding.com",
+    bidAmount: 360,
+  },
+  {
+    name: "Bulenox",
+    description:
+      "Bulenox is a proprietary trading firm focused on futures traders, offering evaluation programs and funded trading accounts.",
+    logoUrl: "https://www.google.com/s2/favicons?domain=bulenox.com&sz=128",
+    websiteUrl: "https://bulenox.com",
+    bidAmount: 340,
+  },
+  {
+    name: "MyFundedFutures",
+    description:
+      "MyFundedFutures is a proprietary trading firm offering futures evaluation programs and funded trading accounts for traders.",
+    logoUrl: "https://www.google.com/s2/favicons?domain=myfundedfutures.com&sz=128",
+    websiteUrl: "https://myfundedfutures.com",
+    bidAmount: 320,
+  },
+  {
+    name: "The5ers",
+    description:
+      "The5ers is a proprietary trading firm offering funded trading programs, instant funding options, trader education, and scaling opportunities.",
+    logoUrl: "https://www.google.com/s2/favicons?domain=the5ers.com&sz=128",
+    websiteUrl: "https://the5ers.com",
+    bidAmount: 300,
+  },
+  {
+    name: "Take Profit Trader",
+    description:
+      "Take Profit Trader is a proprietary trading firm focused on futures traders, offering evaluation programs and funded account opportunities.",
+    logoUrl: "https://www.google.com/s2/favicons?domain=takeprofittrader.com&sz=128",
+    websiteUrl: "https://takeprofittrader.com",
+    bidAmount: 280,
+  },
+  {
+    name: "The Trading Pit",
+    description:
+      "The Trading Pit is a proprietary trading firm offering funded trading programs, evaluation challenges, and trading competitions across forex and futures markets.",
+    logoUrl: "https://www.google.com/s2/favicons?domain=thetradingpit.com&sz=128",
+    websiteUrl: "https://thetradingpit.com",
+    bidAmount: 260,
+  },
+  {
+    name: "True Forex Funds",
+    description:
+      "True Forex Funds is a proprietary trading firm offering evaluation programs and funded trading accounts for forex and CFD traders.",
+    logoUrl: "https://www.google.com/s2/favicons?domain=trueforexfunds.com&sz=128",
+    websiteUrl: "https://trueforexfunds.com",
+    bidAmount: 240,
+  },
+  {
+    name: "Alpha Capital Group",
+    description:
+      "Alpha Capital Group is a proprietary trading firm focused on providing traders with evaluation programs and access to funded trading opportunities.",
+    logoUrl: "https://www.google.com/s2/favicons?domain=alphacapitalgroup.uk&sz=128",
+    websiteUrl: "https://alphacapitalgroup.uk",
+    bidAmount: 220,
+  },
+  {
+    name: "City Traders Imperium",
+    description:
+      "City Traders Imperium is a UK-based proprietary trading firm offering evaluation programs and funded trading accounts for forex and CFD traders.",
+    logoUrl: "https://www.google.com/s2/favicons?domain=citytradersimperium.com&sz=128",
+    websiteUrl: "https://citytradersimperium.com",
+    bidAmount: 200,
+  },
+  {
+    name: "Blue Guardian",
+    description:
+      "Blue Guardian is a proprietary trading firm offering evaluation programs and funded trading accounts for forex and CFD traders.",
+    logoUrl: "https://www.google.com/s2/favicons?domain=blueguardian.com&sz=128",
+    websiteUrl: "https://blueguardian.com",
+    bidAmount: 180,
   },
   {
     name: "Tradeify",
@@ -83,7 +155,15 @@ const FIRMS = [
       "Tradeify is a proprietary trading firm focused on funded trading programs and opportunities for traders, including futures trading.",
     logoUrl: "https://www.google.com/s2/favicons?domain=tradeify.co&sz=128",
     websiteUrl: "https://tradeify.co",
-    bidAmount: 200,
+    bidAmount: 160,
+  },
+  {
+    name: "SurgeTrader",
+    description:
+      "SurgeTrader is a proprietary trading firm offering a one-step evaluation process and funded trading accounts for forex and CFD traders.",
+    logoUrl: "https://www.google.com/s2/favicons?domain=surgetrader.com&sz=128",
+    websiteUrl: "https://surgetrader.com",
+    bidAmount: 140,
   },
   {
     name: "Topstep",
@@ -91,7 +171,15 @@ const FIRMS = [
       "Topstep is a proprietary trading firm focused on futures traders, offering trading evaluations and funded trading opportunities.",
     logoUrl: "https://www.google.com/s2/favicons?domain=topstep.com&sz=128",
     websiteUrl: "https://www.topstep.com",
-    bidAmount: 150,
+    bidAmount: 120,
+  },
+  {
+    name: "FunderPro",
+    description:
+      "FunderPro is a proprietary trading firm offering evaluation programs and funded trading accounts for forex and CFD traders.",
+    logoUrl: "https://www.google.com/s2/favicons?domain=funderpro.com&sz=128",
+    websiteUrl: "https://funderpro.com",
+    bidAmount: 100,
   },
   {
     name: "Maven Trading",
@@ -99,7 +187,7 @@ const FIRMS = [
       "Maven Trading is a proprietary trading firm offering funded trading programs and evaluation opportunities for traders.",
     logoUrl: "https://www.google.com/s2/favicons?domain=maventrading.com&sz=128",
     websiteUrl: "https://maventrading.com",
-    bidAmount: 100,
+    bidAmount: 80,
   },
   {
     name: "BrightFunded",
