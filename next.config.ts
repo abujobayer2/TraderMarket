@@ -50,6 +50,22 @@ const nextConfig: NextConfig = {
       { protocol: "https", hostname: "www.google.com", pathname: "/s2/favicons/**" },
     ],
   },
+  // Consolidate the www host onto the canonical apex domain. Google had
+  // indexed https://www.tradermarket.online/ "blocked by robots.txt" because
+  // www resolved to something serving Disallow: / — this 308s every www
+  // request (robots.txt and sitemap.xml included) to the bare domain, which
+  // serves the permissive robots.txt. Requires www to actually route to this
+  // deployment (add it as a domain on the host); otherwise this never runs.
+  async redirects() {
+    return [
+      {
+        source: "/:path*",
+        has: [{ type: "host", value: "www.(?<host>.*)" }],
+        destination: "https://:host/:path*",
+        permanent: true,
+      },
+    ];
+  },
   async headers() {
     const common = [
       { key: "X-Content-Type-Options", value: "nosniff" },
