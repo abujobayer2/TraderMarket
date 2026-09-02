@@ -5,6 +5,7 @@ import { Footer } from "@/components/Footer";
 import { LeaderboardTable } from "@/components/LeaderboardTable";
 import { HeroBidWidget } from "@/components/HeroBidWidget";
 import { getActiveLeaderboard, getPublicStats, minimumBidForPosition } from "@/lib/ranking";
+import { getReviewSummaries } from "@/lib/reviews";
 import { jsonLdScript } from "@/lib/jsonLd";
 
 export const revalidate = 15;
@@ -46,7 +47,11 @@ const steps = [
 ];
 
 export default async function HomePage() {
-  const [leaderboard, stats] = await Promise.all([getActiveLeaderboard(), getPublicStats()]);
+  const [leaderboard, stats, reviewSummaries] = await Promise.all([
+    getActiveLeaderboard(),
+    getPublicStats(),
+    getReviewSummaries(),
+  ]);
   const minimumForFirst = minimumBidForPosition(leaderboard, 1);
   const newSpotMinimum = minimumBidForPosition(leaderboard, leaderboard.length + 1);
 
@@ -94,9 +99,34 @@ export default async function HomePage() {
               </Link>
             </div>
 
-            <h1 className="mt-4 text-[15px] font-medium leading-[22px] text-body-mid sm:text-[16px]">
-              TraderMarket — the prop firm leaderboard where firms outbid each other for rank
+            <h1 className="mt-4 text-[22px] font-semibold leading-[28px] tracking-[-0.4px] text-ink sm:text-[30px] sm:leading-[36px]">
+              The prop firm leaderboard — compare, review, and rank proprietary trading firms
             </h1>
+
+            <p className="mt-3 text-[15px] leading-[23px] text-body sm:text-[16px]">
+              TraderMarket ranks prop firms by a public, one-time bid — no affiliate payouts, no
+              editorial scoring. Browse the{" "}
+              <Link href="#leaderboard" className="font-semibold text-ink hover:text-primary">
+                live leaderboard
+              </Link>
+              , read{" "}
+              <Link href="/prop-firm-reviews" className="font-semibold text-ink hover:text-primary">
+                trader reviews
+              </Link>
+              , or compare funded programs for{" "}
+              <Link href="/forex-prop-firms" className="font-semibold text-ink hover:text-primary">
+                forex
+              </Link>
+              ,{" "}
+              <Link href="/futures-prop-firms" className="font-semibold text-ink hover:text-primary">
+                futures
+              </Link>
+              , and{" "}
+              <Link href="/crypto-prop-firms" className="font-semibold text-ink hover:text-primary">
+                crypto
+              </Link>
+              .
+            </p>
 
             <div className="mt-8 w-full">
               <HeroBidWidget
@@ -117,7 +147,7 @@ export default async function HomePage() {
               🏆 Prop firm leaderboard
             </h2>
             <div className="mt-6">
-              <LeaderboardTable entries={leaderboard} />
+              <LeaderboardTable entries={leaderboard} summaries={reviewSummaries} />
             </div>
           </div>
         </section>

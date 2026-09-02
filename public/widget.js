@@ -1,3 +1,14 @@
+/*!
+ * TraderMarket ranking badge — embeddable leaderboard-rank widget.
+ *
+ *   <script src="https://tradermarket.online/widget.js"
+ *           data-firm="your-slug"
+ *           data-theme="light"
+ *           data-style="standard"></script>
+ *
+ * Renders in an isolated Shadow DOM, pulls no external fonts or CSS, and
+ * fetches the firm's live rank (and rating, when it has reviews) on load.
+ */
 (function () {
   "use strict";
 
@@ -12,334 +23,486 @@
 
   var theme = script.getAttribute("data-theme") === "dark" ? "dark" : "light";
   var VALID_STYLES = ["small", "standard", "horizontal", "badge"];
-  var style = VALID_STYLES.indexOf(script.getAttribute("data-style")) >= 0
-    ? script.getAttribute("data-style")
-    : "standard";
+  var style =
+    VALID_STYLES.indexOf(script.getAttribute("data-style")) >= 0
+      ? script.getAttribute("data-style")
+      : "standard";
 
   var apiBase = script.src.replace(/\/widget\.js.*$/, "");
 
   var COLORS = {
-    light: { canvas: "#fffefb", canvasSoft: "#f8f4f0", ink: "#201515", body: "#605d52", border: "rgba(32,21,21,0.12)" },
-    dark: { canvas: "#201515", canvasSoft: "#2f2a26", ink: "#fffefb", body: "#c5c0b1", border: "rgba(255,254,251,0.14)" },
+    light: {
+      canvas: "#fffefb",
+      canvasSoft: "#f8f4f0",
+      ink: "#201515",
+      body: "#605d52",
+      bodyMid: "#939084",
+      mute: "#e4ded2",
+      border: "rgba(32,21,21,0.12)",
+    },
+    dark: {
+      canvas: "#201515",
+      canvasSoft: "#2f2a26",
+      ink: "#fffefb",
+      body: "#c5c0b1",
+      bodyMid: "#a39f92",
+      mute: "#4a423b",
+      border: "rgba(255,254,251,0.14)",
+    },
   };
   var PRIMARY = "#ff4f00";
-  var FONT_STACK = "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif";
-  var BRAND_FONT_STACK = "'Plus Jakarta Sans', " + FONT_STACK;
+  var ON_PRIMARY = "#fffefb";
+  var FONT_STACK =
+    "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif";
+  var BRAND_FONT_STACK = "'Plus Jakarta Sans', 'Segoe UI', " + FONT_STACK;
+  var SVG_NS = "http://www.w3.org/2000/svg";
 
-  // Load the same webfonts the main site uses so the embed doesn't fall
-  // back to the host page's default sans-serif. Guarded so multiple badges
-  // on one page only fetch it once. Only the weights actually rendered by
-  // the RENDERERS below are requested — every extra weight is a font file
-  // this script forces onto someone else's site for nothing.
-  if (!document.getElementById("tm-widget-fonts")) {
-    var fontLink = document.createElement("link");
-    fontLink.id = "tm-widget-fonts";
-    fontLink.rel = "stylesheet";
-    fontLink.href =
-      "https://fonts.googleapis.com/css2?family=Inter:wght@600;700&family=Plus+Jakarta+Sans:wght@700&display=swap";
-    document.head.appendChild(fontLink);
-  }
-
-  var host = document.createElement("div");
+  var host = document.createElement("span");
   host.style.display = "inline-block";
   host.style.lineHeight = "normal";
   script.parentNode.insertBefore(host, script.nextSibling);
-
   var root = host.attachShadow ? host.attachShadow({ mode: "open" }) : host;
 
-  // Light cards lift with a soft dark drop-shadow; dark cards get an orange
-  // glow instead, since a dark shadow disappears against a dark card.
+  var c = COLORS[theme];
   var hoverShadow =
-    theme === "dark" ? "0 0 0 1px " + PRIMARY + ", 0 8px 20px rgba(255,79,0,0.25)" : "0 8px 20px rgba(32,21,21,0.14)";
+    theme === "dark"
+      ? "0 0 0 1px " + PRIMARY + ",0 10px 24px rgba(255,79,0,.22)"
+      : "0 10px 24px rgba(32,21,21,.13)";
 
-  var hoverStyle = document.createElement("style");
-  hoverStyle.textContent =
-    ".tm-widget-card { transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease; }" +
-    ".tm-widget-card:hover { transform: translateY(-2px); box-shadow: " +
-    hoverShadow +
-    "; border-color: " +
+  var st = document.createElement("style");
+  st.textContent =
+    ":host{all:initial;contain:content}" +
+    "*{box-sizing:border-box}" +
+    ".tm-card{transition:transform .15s ease,box-shadow .15s ease,border-color .15s ease;text-decoration:none}" +
+    ".tm-card:hover{transform:translateY(-2px);border-color:" +
     PRIMARY +
-    " !important; }";
-  root.appendChild(hoverStyle);
+    ";box-shadow:" +
+    hoverShadow +
+    "}" +
+    "@media (prefers-reduced-motion:reduce){*{transition:none!important}}";
+  root.appendChild(st);
 
   function el(tag, props, children) {
     var node = document.createElement(tag);
     if (props) {
-      Object.keys(props).forEach(function (key) {
-        if (key === "style") {
-          Object.assign(node.style, props.style);
-        } else if (key === "text") {
-          node.textContent = props.text;
-        } else {
-          node.setAttribute(key, props[key]);
-        }
+      Object.keys(props).forEach(function (k) {
+        if (k === "style") Object.assign(node.style, props.style);
+        else if (k === "text") node.textContent = props.text;
+        else node.setAttribute(k, props[k]);
       });
     }
-    (children || []).forEach(function (child) {
-      if (child) node.appendChild(child);
+    (children || []).forEach(function (ch) {
+      if (ch) node.appendChild(ch);
     });
     return node;
   }
 
+  function svgEl(name, attrs) {
+    var n = document.createElementNS(SVG_NS, name);
+    Object.keys(attrs || {}).forEach(function (k) {
+      n.setAttribute(k, attrs[k]);
+    });
+    return n;
+  }
+
+  // The 3-bar TraderMarket mark.
   function logoMark(size, barColor) {
-    var svgNs = "http://www.w3.org/2000/svg";
-    var svg = document.createElementNS(svgNs, "svg");
-    svg.setAttribute("viewBox", "0 0 40 28");
-    svg.setAttribute("width", String(size));
-    svg.setAttribute("height", String((size * 28) / 40));
-    var bars = [
+    var svg = svgEl("svg", {
+      viewBox: "0 0 40 28",
+      width: String(size),
+      height: String((size * 28) / 40),
+    });
+    [
       { x: 16, y: 0, w: 24, h: 8, fill: PRIMARY, o: 1 },
       { x: 0, y: 10, w: 32, h: 8, fill: barColor, o: 1 },
       { x: 0, y: 20, w: 16, h: 8, fill: barColor, o: 0.35 },
-    ];
-    bars.forEach(function (b) {
-      var rect = document.createElementNS(svgNs, "rect");
-      rect.setAttribute("x", b.x);
-      rect.setAttribute("y", b.y);
-      rect.setAttribute("width", b.w);
-      rect.setAttribute("height", b.h);
-      rect.setAttribute("rx", 4);
-      rect.setAttribute("fill", b.fill);
-      rect.setAttribute("opacity", b.o);
-      svg.appendChild(rect);
+    ].forEach(function (b) {
+      svg.appendChild(
+        svgEl("rect", {
+          x: String(b.x),
+          y: String(b.y),
+          width: String(b.w),
+          height: String(b.h),
+          rx: "4",
+          fill: b.fill,
+          opacity: String(b.o),
+        })
+      );
     });
     return svg;
   }
 
-  function baseLink(extraStyle) {
-    return el(
-      "a",
-      Object.assign(
-        {
-          href: "",
-          target: "_blank",
-          rel: "noopener noreferrer sponsored",
-          class: "tm-widget-card",
-        },
-        {
-          style: Object.assign(
-            {
-              textDecoration: "none",
-              fontFamily: FONT_STACK,
-              boxSizing: "border-box",
-            },
-            extraStyle
-          ),
-        }
-      )
+  function wordmark(px, color) {
+    return el("span", {
+      text: "TraderMarket",
+      style: {
+        fontFamily: BRAND_FONT_STACK,
+        fontSize: px + "px",
+        fontWeight: "800",
+        letterSpacing: "-0.01em",
+        color: color,
+      },
+    });
+  }
+
+  function brandRow(px) {
+    return el("span", { style: { display: "inline-flex", alignItems: "center", gap: "6px" } }, [
+      logoMark(px, c.ink),
+      wordmark(px * 0.82, c.body),
+    ]);
+  }
+
+  // Rank chip: a rounded-orange square with "#N" — top-3 get a soft ring.
+  function rankChip(rank, size) {
+    var s = size || 44;
+    var box = el("span", {
+      style: {
+        position: "relative",
+        display: "inline-flex",
+        alignItems: "center",
+        justifyContent: "center",
+        width: s + "px",
+        height: s + "px",
+        borderRadius: s * 0.24 + "px",
+        background: rank ? PRIMARY : c.mute,
+        color: ON_PRIMARY,
+        flexShrink: "0",
+        fontFamily: BRAND_FONT_STACK,
+        fontWeight: "800",
+        lineHeight: "1",
+      },
+    });
+    if (rank && rank <= 3) {
+      box.appendChild(
+        el("span", {
+          style: {
+            position: "absolute",
+            inset: "-4px",
+            borderRadius: s * 0.3 + "px",
+            border: "2px solid " + PRIMARY,
+            opacity: "0.35",
+          },
+        })
+      );
+    }
+    box.appendChild(
+      el("span", {
+        text: rank ? "#" + rank : "—",
+        style: { fontSize: (rank && rank > 99 ? s * 0.3 : s * 0.38) + "px" },
+      })
     );
+    return box;
   }
 
-  var MEDALS = { 1: "🥇", 2: "🥈", 3: "🥉" };
-
-  function rankEmoji(rank) {
-    return MEDALS[rank] || "🏆";
+  // Trustpilot-style star tile row, only shown when the firm has a rating.
+  var STAR_D =
+    "M12 .587l3.668 7.431 8.2 1.192-5.934 5.783 1.401 8.168L12 18.897l-7.335 3.855 1.401-8.168L.132 9.21l8.2-1.192z";
+  function starFace(size, bg) {
+    var svg = svgEl("svg", {
+      width: String(size),
+      height: String(size),
+      viewBox: "0 0 " + size + " " + size,
+      style: "position:absolute;inset:0;display:block",
+    });
+    var pad = size * 0.14;
+    svg.appendChild(
+      svgEl("rect", { width: String(size), height: String(size), rx: String(size * 0.16), fill: bg })
+    );
+    var inner = svgEl("svg", {
+      x: String(pad),
+      y: String(pad),
+      width: String(size - pad * 2),
+      height: String(size - pad * 2),
+      viewBox: "0 0 24 24",
+    });
+    inner.appendChild(svgEl("path", { d: STAR_D, fill: ON_PRIMARY }));
+    svg.appendChild(inner);
+    return svg;
   }
-
-  function rankLabel(data, suffix) {
-    return data.rank ? "#" + data.rank + suffix : "Listed on TraderMarket";
-  }
-
-  function metaRow(c, data) {
-    if (!data.verified && !data.rating) return null;
-    var row = el("div", { style: { display: "flex", alignItems: "center", gap: "10px", fontSize: "13px", color: c.body } });
-    if (data.rating) row.appendChild(el("span", { text: "⭐ " + data.rating + " / 5" }));
-    if (data.verified) row.appendChild(el("span", { text: "✓ Verified", style: { color: PRIMARY, fontWeight: "600" } }));
+  function stars(value, size) {
+    var row = el("span", { style: { display: "inline-flex", gap: "3px", alignItems: "center" } });
+    for (var i = 0; i < 5; i++) {
+      var frac = Math.max(0, Math.min(1, value - i));
+      var wrap = el("span", {
+        style: {
+          position: "relative",
+          display: "inline-block",
+          width: size + "px",
+          height: size + "px",
+        },
+      });
+      wrap.appendChild(starFace(size, frac >= 1 ? PRIMARY : c.mute));
+      if (frac > 0 && frac < 1) {
+        var over = el("span", {
+          style: {
+            position: "absolute",
+            top: "0",
+            left: "0",
+            height: "100%",
+            width: frac * 100 + "%",
+            overflow: "hidden",
+          },
+        });
+        over.appendChild(starFace(size, PRIMARY));
+        wrap.appendChild(over);
+      }
+      row.appendChild(wrap);
+    }
     return row;
   }
 
-  var RENDERERS = {
-    small: function (data, c) {
-      var card = baseLink({
+  function ratingRow(data, starSize) {
+    if (!data.rating) return null;
+    return el(
+      "span",
+      { style: { display: "inline-flex", alignItems: "center", gap: "7px" } },
+      [
+        stars(data.rating, starSize || 14),
+        el("span", {
+          text: data.rating.toFixed(1) + (data.reviews ? " · " + data.reviews : ""),
+          style: { fontSize: "12px", fontWeight: "600", color: c.body },
+        }),
+      ]
+    );
+  }
+
+  function verifiedTag() {
+    return el(
+      "span",
+      {
+        style: {
+          display: "inline-flex",
+          alignItems: "center",
+          gap: "3px",
+          fontSize: "11px",
+          fontWeight: "700",
+          color: PRIMARY,
+        },
+      },
+      [
+        (function () {
+          var svg = svgEl("svg", { width: "12", height: "12", viewBox: "0 0 24 24" });
+          svg.appendChild(
+            svgEl("path", {
+              d: "M9 16.2l-3.5-3.5L4 14.2l5 5 11-11-1.5-1.5z",
+              fill: PRIMARY,
+            })
+          );
+          return svg;
+        })(),
+        el("span", { text: "Verified" }),
+      ]
+    );
+  }
+
+  function baseCard(extra) {
+    return el("a", {
+      class: "tm-card",
+      href: "",
+      target: "_blank",
+      rel: "noopener noreferrer sponsored",
+      style: Object.assign(
+        {
+          display: "flex",
+          fontFamily: FONT_STACK,
+          color: c.ink,
+          background: c.canvas,
+          border: "1px solid " + c.border,
+          borderRadius: "14px",
+          boxSizing: "border-box",
+        },
+        extra || {}
+      ),
+    });
+  }
+
+  function firmLogo(data, size, radius) {
+    var tile = el("span", {
+      style: {
         display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        width: size + "px",
+        height: size + "px",
+        borderRadius: (radius || 8) + "px",
+        background: c.canvasSoft,
+        overflow: "hidden",
+        flexShrink: "0",
+      },
+    });
+    if (data.logo) {
+      tile.appendChild(
+        el("img", {
+          src: data.logo,
+          alt: "",
+          loading: "lazy",
+          style: { width: "100%", height: "100%", objectFit: "cover" },
+        })
+      );
+    } else {
+      tile.appendChild(
+        el("span", {
+          text: (data.name || "?").charAt(0).toUpperCase(),
+          style: { fontSize: size * 0.42 + "px", fontWeight: "800", color: c.ink },
+        })
+      );
+    }
+    return tile;
+  }
+
+  var RENDERERS = {
+    small: function (data) {
+      var card = baseCard({
         flexDirection: "column",
-        gap: "8px",
-        width: "200px",
-        padding: "12px 14px",
-        borderRadius: "12px",
-        border: "1px solid " + c.border,
+        gap: "10px",
+        width: "210px",
+        padding: "14px",
         background: c.canvasSoft,
       });
       card.href = data.profileUrl;
-
-      var brandRow = el("div", { style: { display: "flex", alignItems: "center", gap: "6px" } }, [
-        logoMark(16, c.ink),
-        el("span", {
-          text: "TraderMarket",
-          style: {
-            fontFamily: BRAND_FONT_STACK,
-            fontSize: "11px",
-            fontWeight: "700",
-            letterSpacing: "0.4px",
-            textTransform: "uppercase",
-            color: c.body,
-          },
-        }),
-      ]);
-
-      var rankRow = el("div", { style: { display: "flex", alignItems: "center", gap: "6px", fontSize: "13px", fontWeight: "600", color: c.ink } }, [
-        el("span", { text: rankEmoji(data.rank) }),
-        el("span", { text: rankLabel(data, " Prop Firm") }),
-      ]);
-
-      card.appendChild(rankRow);
-      card.appendChild(brandRow);
+      card.appendChild(
+        el("span", { style: { display: "flex", alignItems: "center", gap: "10px" } }, [
+          rankChip(data.rank, 38),
+          el("span", { style: { display: "flex", flexDirection: "column" } }, [
+            el("span", {
+              text: data.rank ? "Ranked #" + data.rank : "Listed firm",
+              style: { fontSize: "14px", fontWeight: "800", color: c.ink },
+            }),
+            el("span", {
+              text: "prop firm",
+              style: { fontSize: "11px", color: c.bodyMid, textTransform: "uppercase", letterSpacing: "0.06em" },
+            }),
+          ]),
+        ])
+      );
+      var meta = ratingRow(data, 13);
+      if (meta) card.appendChild(meta);
+      card.appendChild(brandRow(14));
       return card;
     },
 
-    standard: function (data, c) {
-      var card = baseLink({
-        display: "flex",
+    standard: function (data) {
+      var card = baseCard({
         flexDirection: "column",
-        gap: "8px",
-        width: "260px",
-        padding: "16px 18px",
-        borderRadius: "12px",
-        border: "1px solid " + c.border,
-        background: c.canvasSoft,
+        gap: "12px",
+        width: "268px",
+        padding: "18px",
       });
       card.href = data.profileUrl;
 
       card.appendChild(
-        el("div", { style: { display: "flex", alignItems: "center", gap: "6px", fontSize: "15px", fontWeight: "600", color: c.ink } }, [
-          el("span", { text: rankEmoji(data.rank) }),
-          el("span", { text: rankLabel(data, " Ranked Prop Firm") }),
+        el("span", { style: { display: "flex", alignItems: "center", gap: "12px" } }, [
+          rankChip(data.rank, 46),
+          el("span", { style: { display: "flex", flexDirection: "column", gap: "2px", minWidth: "0" } }, [
+            el("span", {
+              text: data.name,
+              style: {
+                fontSize: "16px",
+                fontWeight: "800",
+                color: c.ink,
+                whiteSpace: "nowrap",
+                overflow: "hidden",
+                textOverflow: "ellipsis",
+              },
+            }),
+            el("span", {
+              text: data.rank ? "#" + data.rank + " ranked prop firm" : "Listed prop firm",
+              style: { fontSize: "12px", fontWeight: "600", color: c.body },
+            }),
+          ]),
         ])
       );
 
-      var nameRow = el("div", { style: { display: "flex", alignItems: "center", gap: "8px" } });
-      if (data.logo) nameRow.appendChild(el("img", { src: data.logo, alt: "", style: { width: "20px", height: "20px", borderRadius: "4px", objectFit: "cover" } }));
-      nameRow.appendChild(el("span", { text: data.name, style: { fontSize: "16px", fontWeight: "700", color: c.ink } }));
-      card.appendChild(nameRow);
-
-      var meta = metaRow(c, data);
-      if (meta) card.appendChild(meta);
+      var meta = el("span", {
+        style: { display: "flex", alignItems: "center", flexWrap: "wrap", gap: "10px" },
+      });
+      var r = ratingRow(data, 15);
+      if (r) meta.appendChild(r);
+      if (data.verified) meta.appendChild(verifiedTag());
+      if (meta.childNodes.length) card.appendChild(meta);
 
       card.appendChild(
-        el("div", { style: { display: "flex", alignItems: "center", gap: "6px" } }, [
-          logoMark(18, c.ink),
+        el("span", {
+          style: {
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            gap: "10px",
+            paddingTop: "12px",
+            borderTop: "1px solid " + c.border,
+          },
+        }, [
+          brandRow(15),
           el("span", {
-            text: "TraderMarket",
-            style: {
-              fontFamily: BRAND_FONT_STACK,
-              fontSize: "12px",
-              fontWeight: "700",
-              letterSpacing: "0.4px",
-              textTransform: "uppercase",
-              color: c.body,
-            },
+            text: "View profile →",
+            style: { fontSize: "13px", fontWeight: "700", color: PRIMARY },
           }),
         ])
       );
-
-      card.appendChild(el("span", { text: "View Profile →", style: { fontSize: "13px", fontWeight: "700", color: PRIMARY, marginTop: "2px" } }));
       return card;
     },
 
-    // Wide single-row layout — reads well in a footer or sidebar.
-    horizontal: function (data, c) {
-      var card = baseLink({
-        display: "flex",
+    horizontal: function (data) {
+      var card = baseCard({
         alignItems: "center",
-        gap: "12px",
-        width: "320px",
+        gap: "14px",
+        width: "330px",
         padding: "12px 16px",
-        borderRadius: "12px",
-        border: "1px solid " + c.border,
-        background: c.canvasSoft,
       });
       card.href = data.profileUrl;
-
-      var iconTile = el("div", {
-        style: {
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          width: "40px",
-          height: "40px",
-          borderRadius: "8px",
-          background: c.canvas,
-          flexShrink: "0",
-          overflow: "hidden",
-        },
-      });
-      if (data.logo) {
-        iconTile.appendChild(el("img", { src: data.logo, alt: "", style: { width: "100%", height: "100%", objectFit: "cover" } }));
-      } else {
-        iconTile.appendChild(logoMark(20, c.ink));
-      }
-      card.appendChild(iconTile);
-
-      var textCol = el("div", { style: { display: "flex", flexDirection: "column", gap: "2px", minWidth: "0", flex: "1" } });
-      textCol.appendChild(
-        el("span", {
-          text: data.name,
-          style: { fontSize: "14px", fontWeight: "700", color: c.ink, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" },
-        })
-      );
-      textCol.appendChild(
-        el("span", { style: { fontSize: "12px", fontWeight: "600", color: c.body, display: "flex", alignItems: "center", gap: "4px" } }, [
-          el("span", { text: rankEmoji(data.rank) }),
-          el("span", { text: rankLabel(data, " on TraderMarket") }),
+      card.appendChild(rankChip(data.rank, 42));
+      card.appendChild(
+        el("span", { style: { display: "flex", flexDirection: "column", gap: "2px", minWidth: "0", flex: "1" } }, [
+          el("span", {
+            text: data.name,
+            style: {
+              fontSize: "14px",
+              fontWeight: "800",
+              color: c.ink,
+              whiteSpace: "nowrap",
+              overflow: "hidden",
+              textOverflow: "ellipsis",
+            },
+          }),
+          el("span", {
+            text: data.rank ? "#" + data.rank + " on TraderMarket" : "Listed on TraderMarket",
+            style: { fontSize: "12px", fontWeight: "600", color: c.body },
+          }),
+          ratingRow(data, 12) || undefined,
         ])
       );
-      card.appendChild(textCol);
-
-      card.appendChild(el("span", { text: "→", style: { fontSize: "18px", fontWeight: "700", color: PRIMARY, flexShrink: "0" } }));
+      card.appendChild(logoMark(20, c.ink));
       return card;
     },
 
-    // Co-branded logo lockup: TraderMarket mark × the firm's own logo,
-    // like a partner/verification badge — single line, rank included.
-    badge: function (data, c) {
-      var card = baseLink({
-        display: "inline-flex",
+    // Co-branded lockup: TraderMarket mark × the firm's own logo.
+    badge: function (data) {
+      var card = baseCard({
         alignItems: "center",
         gap: "10px",
         padding: "10px 14px",
-        borderRadius: "12px",
-        border: "1px solid " + c.border,
         background: c.canvasSoft,
         whiteSpace: "nowrap",
       });
       card.href = data.profileUrl;
-
-      card.appendChild(logoMark(20, c.ink));
-      card.appendChild(el("span", { text: "×", style: { fontSize: "14px", fontWeight: "600", color: c.body, flexShrink: "0" } }));
-
-      var firmMark = el("div", {
-        style: {
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          width: "24px",
-          height: "24px",
-          borderRadius: "6px",
-          background: c.canvas,
-          overflow: "hidden",
-          flexShrink: "0",
-        },
-      });
-      if (data.logo) {
-        firmMark.appendChild(el("img", { src: data.logo, alt: "", style: { width: "100%", height: "100%", objectFit: "cover" } }));
-      } else {
-        firmMark.appendChild(el("span", { text: data.name.slice(0, 1), style: { fontSize: "12px", fontWeight: "700", color: c.ink } }));
-      }
-      card.appendChild(firmMark);
-
-      card.appendChild(el("span", { text: "|", style: { fontSize: "13px", color: c.border, flexShrink: "0" } }));
-      card.appendChild(el("span", { text: rankEmoji(data.rank), style: { fontSize: "13px", flexShrink: "0" } }));
+      card.appendChild(logoMark(22, c.ink));
       card.appendChild(
-        el("span", { text: rankLabel(data, " Ranked"), style: { fontSize: "13px", fontWeight: "700", color: c.ink } })
+        el("span", { text: "×", style: { fontSize: "13px", fontWeight: "700", color: c.bodyMid } })
+      );
+      card.appendChild(firmLogo(data, 26, 6));
+      card.appendChild(
+        el("span", { style: { width: "1px", height: "20px", background: c.border } })
+      );
+      card.appendChild(rankChip(data.rank, 26));
+      card.appendChild(
+        el("span", {
+          text: data.rank ? "Ranked" : "Listed",
+          style: { fontSize: "13px", fontWeight: "800", color: c.ink },
+        })
       );
       return card;
     },
   };
-
-  function renderFallback() {
-    // Fail quietly on the host site rather than showing a broken box.
-    host.style.display = "none";
-  }
 
   fetch(apiBase + "/api/widget/" + encodeURIComponent(firmSlug))
     .then(function (res) {
@@ -347,8 +510,9 @@
       return res.json();
     })
     .then(function (data) {
-      var render = RENDERERS[style] || RENDERERS.standard;
-      root.appendChild(render(data, COLORS[theme]));
+      root.appendChild((RENDERERS[style] || RENDERERS.standard)(data));
     })
-    .catch(renderFallback);
+    .catch(function () {
+      host.style.display = "none";
+    });
 })();

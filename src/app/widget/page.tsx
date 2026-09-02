@@ -1,4 +1,5 @@
 import { Suspense } from "react";
+import Link from "next/link";
 import { Nav } from "@/components/Nav";
 import { Footer } from "@/components/Footer";
 import { jsonLdScript } from "@/lib/jsonLd";
@@ -57,6 +58,13 @@ export default function WidgetPage() {
             Generate a free embed badge that shows your current TraderMarket rank —
             like a Trustpilot widget, but for leaderboard position. It updates itself
             automatically and links back to your profile.
+          </p>
+
+          <p className="mt-4 text-[15px] leading-[22px] text-body-mid">
+            Want to show your trader reviews too?{" "}
+            <Link href="/widget/reviews" className="font-semibold text-ink hover:text-primary">
+              Get the reviews widget →
+            </Link>
           </p>
 
           <div className="mt-12">

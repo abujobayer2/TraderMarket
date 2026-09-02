@@ -4,9 +4,11 @@ import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import { Nav } from "@/components/Nav";
 import { Footer } from "@/components/Footer";
+import { Stars } from "@/components/Stars";
 import { connectDB } from "@/lib/db";
 import { PropFirm } from "@/lib/models/PropFirm";
 import { getActiveLeaderboard } from "@/lib/ranking";
+import { getReviewSummary } from "@/lib/reviews";
 import { jsonLdScript } from "@/lib/jsonLd";
 
 export const revalidate = 30;
@@ -44,7 +46,10 @@ export default async function FirmPage({ params }: { params: Promise<{ slug: str
   const firm = await getFirm(slug);
   if (!firm) notFound();
 
-  const leaderboard = await getActiveLeaderboard();
+  const [leaderboard, reviewSummary] = await Promise.all([
+    getActiveLeaderboard(),
+    getReviewSummary(slug),
+  ]);
   const entry = leaderboard.find((e) => e.slug === slug);
   const rank = entry?.rank;
 
@@ -57,6 +62,17 @@ export default async function FirmPage({ params }: { params: Promise<{ slug: str
     url: firm.websiteUrl,
     description: firm.description || undefined,
     logo: firm.logoUrl || undefined,
+    ...(reviewSummary.count > 0
+      ? {
+          aggregateRating: {
+            "@type": "AggregateRating",
+            ratingValue: reviewSummary.average,
+            reviewCount: reviewSummary.count,
+            bestRating: 5,
+            worstRating: 1,
+          },
+        }
+      : {}),
     ...(rank
       ? { additionalProperty: { "@type": "PropertyValue", name: "leaderboardRank", value: rank } }
       : {}),
@@ -106,6 +122,30 @@ export default async function FirmPage({ params }: { params: Promise<{ slug: str
               </div>
             </div>
 
+            <div className="mt-5 flex flex-wrap items-center gap-x-3 gap-y-1">
+              {reviewSummary.count > 0 ? (
+                <>
+                  <Stars value={reviewSummary.average} size={18} />
+                  <span className="text-[15px] font-semibold leading-[22px] text-ink">
+                    {reviewSummary.average.toFixed(1)}
+                  </span>
+                  <Link
+                    href={`/firm/${slug}/reviews`}
+                    className="text-[15px] leading-[22px] text-body-mid hover:text-primary"
+                  >
+                    {reviewSummary.count} review{reviewSummary.count === 1 ? "" : "s"} →
+                  </Link>
+                </>
+              ) : (
+                <Link
+                  href={`/firm/${slug}/reviews`}
+                  className="text-[15px] leading-[22px] text-body-mid hover:text-primary"
+                >
+                  No reviews yet — write the first →
+                </Link>
+              )}
+            </div>
+
             {firm.description && (
               <p className="mt-6 text-[18px] leading-[27px] text-body">{firm.description}</p>
             )}
@@ -130,6 +170,12 @@ export default async function FirmPage({ params }: { params: Promise<{ slug: str
                   Outbid #{rank} — ${firm.currentBidAmount + 1}
                 </Link>
               )}
+              <Link
+                href={`/firm/${slug}/reviews`}
+                className="rounded-md border border-ink px-6 py-3 text-[18px] font-semibold leading-[27px] text-ink hover:bg-canvas-soft"
+              >
+                {reviewSummary.count > 0 ? "Read reviews" : "Write a review"}
+              </Link>
             </div>
 
             <Link

@@ -12,6 +12,9 @@ export function Nav() {
           <Link href="/#leaderboard" className="text-[16px] text-ink hover:text-body">
             Leaderboard
           </Link>
+          <Link href="/prop-firm-reviews" className="text-[16px] text-ink hover:text-body">
+            Reviews
+          </Link>
           <Link href="/#how-it-works" className="text-[16px] text-ink hover:text-body">
             How it works
           </Link>

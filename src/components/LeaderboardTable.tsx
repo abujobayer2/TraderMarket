@@ -1,6 +1,8 @@
 import Link from "next/link";
 import Image from "next/image";
 import type { LeaderboardEntry } from "@/lib/ranking";
+import type { FirmRatingBrief } from "@/lib/reviews";
+import { Stars } from "@/components/Stars";
 
 const MEDALS: Record<number, string> = { 1: "🥇", 2: "🥈", 3: "🥉" };
 
@@ -12,7 +14,13 @@ function displayHost(url: string) {
   }
 }
 
-export function LeaderboardTable({ entries }: { entries: LeaderboardEntry[] }) {
+export function LeaderboardTable({
+  entries,
+  summaries,
+}: {
+  entries: LeaderboardEntry[];
+  summaries?: Map<string, FirmRatingBrief>;
+}) {
   if (entries.length === 0) {
     return (
       <div className="rounded-md bg-canvas-soft px-6 py-12 text-center">
@@ -65,6 +73,31 @@ export function LeaderboardTable({ entries }: { entries: LeaderboardEntry[] }) {
                 {entry.name}
               </Link>
               <p className="text-[14px] leading-[21px] text-body-mid">{displayHost(entry.websiteUrl)}</p>
+              {(() => {
+                const s = summaries?.get(entry.slug);
+                if (!s || s.count === 0) {
+                  return (
+                    <Link
+                      href={`/firm/${entry.slug}/reviews`}
+                      className="mt-1 inline-block text-[13px] leading-[19px] text-body-mid hover:text-primary"
+                    >
+                      Write a review
+                    </Link>
+                  );
+                }
+                return (
+                  <Link
+                    href={`/firm/${entry.slug}/reviews`}
+                    className="mt-1 flex items-center gap-1.5 text-[13px] leading-[19px] text-body-mid hover:text-primary"
+                  >
+                    <Stars value={s.average} size={13} />
+                    <span className="font-semibold text-ink">{s.average.toFixed(1)}</span>
+                    <span>
+                      ({s.count} review{s.count === 1 ? "" : "s"})
+                    </span>
+                  </Link>
+                );
+              })()}
             </div>
           </div>
 

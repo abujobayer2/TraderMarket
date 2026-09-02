@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { connectDB } from "@/lib/db";
 import { PropFirm } from "@/lib/models/PropFirm";
 import { getActiveLeaderboard } from "@/lib/ranking";
+import { getReviewSummary } from "@/lib/reviews";
 
 const SLUG_PATTERN = /^[a-z0-9-]{1,80}$/;
 
@@ -37,7 +38,10 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ slu
     return jsonWithCors({ error: "Firm not found" }, { status: 404 });
   }
 
-  const leaderboard = await getActiveLeaderboard();
+  const [leaderboard, reviewSummary] = await Promise.all([
+    getActiveLeaderboard(),
+    getReviewSummary(slug),
+  ]);
   const entry = leaderboard.find((e) => e.slug === slug);
 
   const base = process.env.NEXT_PUBLIC_BASE_URL || "https://tradermarket.online";
@@ -49,11 +53,10 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ slu
       rank: entry?.rank ?? null,
       bid: firm.currentBidAmount,
       verified: Boolean(firm.verified),
-      // Real review/rating aggregation isn't implemented yet — return null
-      // rather than a fabricated number; the widget hides these fields
-      // when null instead of showing a fake rating.
-      rating: null,
-      reviews: null,
+      // Real trader-review aggregation. Null when the firm has no reviews yet
+      // so the ranking badge hides these fields instead of showing "0".
+      rating: reviewSummary.count > 0 ? reviewSummary.average : null,
+      reviews: reviewSummary.count > 0 ? reviewSummary.count : null,
       profileUrl: `${base}/firm/${firm.slug}`,
     },
     {

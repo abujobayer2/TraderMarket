@@ -4,6 +4,7 @@ import type { Metadata } from "next";
 import { Nav } from "@/components/Nav";
 import { Footer } from "@/components/Footer";
 import { getActiveLeaderboard, getPublicStats } from "@/lib/ranking";
+import { getReviewSummaries } from "@/lib/reviews";
 import { jsonLdScript } from "@/lib/jsonLd";
 
 export const revalidate = 15;
@@ -69,7 +70,11 @@ const faqJsonLd = {
 };
 
 export default async function BestPropTradingFirmsPage() {
-  const [leaderboard, stats] = await Promise.all([getActiveLeaderboard(), getPublicStats()]);
+  const [leaderboard, stats, reviewSummaries] = await Promise.all([
+    getActiveLeaderboard(),
+    getPublicStats(),
+    getReviewSummaries(),
+  ]);
   const updatedAt = new Date().toLocaleDateString("en-US", {
     year: "numeric",
     month: "long",
@@ -171,6 +176,21 @@ export default async function BestPropTradingFirmsPage() {
                               {firm.description}
                             </p>
                           )}
+                          {(() => {
+                            const s = reviewSummaries.get(firm.slug);
+                            return (
+                              <Link
+                                href={`/firm/${firm.slug}/reviews`}
+                                className="mt-2 inline-block text-[14px] leading-[20px] text-body-mid hover:text-primary"
+                              >
+                                {s && s.count > 0
+                                  ? `★ ${s.average.toFixed(1)} — ${s.count} ${firm.name} review${
+                                      s.count === 1 ? "" : "s"
+                                    } →`
+                                  : `Review ${firm.name} →`}
+                              </Link>
+                            );
+                          })()}
                         </div>
                       </div>
                       <div className="text-right">

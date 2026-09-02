@@ -25,6 +25,20 @@ const csp = [
   "form-action 'self'",
 ].join("; ");
 
+// The /embed/* iframe surface is designed to be framed on any firm's own
+// site, so it must NOT send X-Frame-Options and must allow all frame
+// ancestors. It only loads our own loader script + inline resize glue.
+const embedCsp = [
+  "default-src 'self'",
+  `script-src 'self' 'unsafe-inline'${isDev ? " 'unsafe-eval'" : ""}`,
+  "style-src 'self' 'unsafe-inline'",
+  "img-src 'self' https: data:",
+  "font-src 'self' data:",
+  "connect-src 'self' https://datafa.st",
+  "frame-ancestors *",
+  "base-uri 'self'",
+].join("; ");
+
 const nextConfig: NextConfig = {
   images: {
     // Every firm logoUrl is server-derived from faviconUrlFor() (see
@@ -37,16 +51,41 @@ const nextConfig: NextConfig = {
     ],
   },
   async headers() {
+    const common = [
+      { key: "X-Content-Type-Options", value: "nosniff" },
+      { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
+      { key: "Permissions-Policy", value: "camera=(), microphone=(), geolocation=()" },
+      { key: "Strict-Transport-Security", value: "max-age=63072000; includeSubDomains; preload" },
+    ];
     return [
       {
-        source: "/:path*",
+        // Everything except the cross-origin /embed iframe surface.
+        source: "/((?!embed/).*)",
         headers: [
-          { key: "X-Content-Type-Options", value: "nosniff" },
+          ...common,
           { key: "X-Frame-Options", value: "SAMEORIGIN" },
-          { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
-          { key: "Permissions-Policy", value: "camera=(), microphone=(), geolocation=()" },
-          { key: "Strict-Transport-Security", value: "max-age=63072000; includeSubDomains; preload" },
           { key: "Content-Security-Policy", value: csp },
+        ],
+      },
+      {
+        // Frameable widget pages: no X-Frame-Options, permissive frame-ancestors.
+        source: "/embed/:path*",
+        headers: [
+          ...common,
+          { key: "Content-Security-Policy", value: embedCsp },
+          { key: "Access-Control-Allow-Origin", value: "*" },
+        ],
+      },
+      {
+        // The reviews widget loader is embedded on any firm's own site: allow
+        // cross-origin use and let CDNs cache it hard (it's versioned in-file).
+        source: "/reviews-widget.js",
+        headers: [
+          { key: "Access-Control-Allow-Origin", value: "*" },
+          {
+            key: "Cache-Control",
+            value: "public, max-age=300, s-maxage=86400, stale-while-revalidate=604800",
+          },
         ],
       },
       {

@@ -11,15 +11,27 @@ export function Footer() {
             The public leaderboard where prop firms compete for visibility.
           </p>
         </div>
-        <div className="flex gap-6 text-[16px]">
+        <div className="flex flex-wrap gap-x-6 gap-y-2 text-[16px]">
           <Link href="/#leaderboard" className="hover:text-canvas">
             Leaderboard
           </Link>
           <Link href="/best-prop-trading-firms" className="hover:text-canvas">
             Rankings
           </Link>
+          <Link href="/prop-firm-reviews" className="hover:text-canvas">
+            Reviews
+          </Link>
           <Link href="/funded-trading-programs" className="hover:text-canvas">
             Funded Programs Guide
+          </Link>
+          <Link href="/forex-prop-firms" className="hover:text-canvas">
+            Forex
+          </Link>
+          <Link href="/futures-prop-firms" className="hover:text-canvas">
+            Futures
+          </Link>
+          <Link href="/crypto-prop-firms" className="hover:text-canvas">
+            Crypto
           </Link>
           <Link href="/list" className="hover:text-canvas">
             List your firm
