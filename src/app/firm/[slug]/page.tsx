@@ -5,18 +5,25 @@ import type { Metadata } from "next";
 import { Nav } from "@/components/Nav";
 import { Footer } from "@/components/Footer";
 import { Stars } from "@/components/Stars";
+import { cache } from "react";
 import { connectDB } from "@/lib/db";
 import { PropFirm } from "@/lib/models/PropFirm";
-import { getActiveLeaderboard } from "@/lib/ranking";
+import { getFirmRank } from "@/lib/ranking";
 import { getReviewSummary } from "@/lib/reviews";
 import { jsonLdScript } from "@/lib/jsonLd";
 
 export const revalidate = 30;
 
-async function getFirm(slug: string) {
+// cache(): generateMetadata and the component share one query per request.
+const getFirm = cache(async function getFirm(slug: string) {
   await connectDB();
-  const firm = await PropFirm.findOne({ slug, status: "active" }).lean();
-  return firm;
+  return PropFirm.findOne({ slug, status: "active" }).lean();
+});
+
+export async function generateStaticParams() {
+  await connectDB();
+  const firms = await PropFirm.find({ status: "active" }).select("slug").lean();
+  return firms.map((f) => ({ slug: f.slug as string }));
 }
 
 export async function generateMetadata({
@@ -46,12 +53,10 @@ export default async function FirmPage({ params }: { params: Promise<{ slug: str
   const firm = await getFirm(slug);
   if (!firm) notFound();
 
-  const [leaderboard, reviewSummary] = await Promise.all([
-    getActiveLeaderboard(),
+  const [rank, reviewSummary] = await Promise.all([
+    getFirmRank(slug),
     getReviewSummary(slug),
   ]);
-  const entry = leaderboard.find((e) => e.slug === slug);
-  const rank = entry?.rank;
 
   const base = process.env.NEXT_PUBLIC_BASE_URL || "https://tradermarket.online";
 

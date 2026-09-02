@@ -5,37 +5,39 @@ import type { Metadata } from "next";
 import { Nav } from "@/components/Nav";
 import { Footer } from "@/components/Footer";
 import { Stars } from "@/components/Stars";
+import { cache } from "react";
 import { connectDB } from "@/lib/db";
 import { PropFirm } from "@/lib/models/PropFirm";
-import { getActiveLeaderboard } from "@/lib/ranking";
-import { getFirmReviews, getReviewSummary, type ReviewSummary } from "@/lib/reviews";
+import { getFirmRank } from "@/lib/ranking";
+import {
+  getFirmReviews,
+  getReviewSummary,
+  REVIEWS_PER_PAGE,
+  type ReviewSummary,
+} from "@/lib/reviews";
 import { jsonLdScript } from "@/lib/jsonLd";
 import { ReviewForm } from "./ReviewForm";
+import { ReviewList, ReviewPagination } from "./ReviewList";
 
 export const revalidate = 60;
 
 const BASE = process.env.NEXT_PUBLIC_BASE_URL || "https://tradermarket.online";
 
-async function getFirm(slug: string) {
+// cache(): generateMetadata and the page component both need the firm doc —
+// this keeps it to one query per request.
+const getFirm = cache(async function getFirm(slug: string) {
   await connectDB();
-  return PropFirm.findOne({ slug, status: "active" }).lean();
-}
+  return PropFirm.findOne({ slug, status: "active" })
+    .select("name slug websiteUrl logoUrl description")
+    .lean();
+});
 
-function formatDate(iso: string) {
-  return new Date(iso).toLocaleDateString("en-US", {
-    year: "numeric",
-    month: "long",
-    day: "numeric",
-  });
-}
-
-function initials(name: string) {
-  return name
-    .split(/\s+/)
-    .filter(Boolean)
-    .slice(0, 2)
-    .map((w) => w[0]!.toUpperCase())
-    .join("");
+// Pre-render every active firm's reviews page at build time; new firms still
+// render on demand and are cached from then on (dynamicParams defaults true).
+export async function generateStaticParams() {
+  await connectDB();
+  const firms = await PropFirm.find({ status: "active" }).select("slug").lean();
+  return firms.map((f) => ({ slug: f.slug as string }));
 }
 
 /** Single source of truth for the visible FAQ block and the FAQPage schema. */
@@ -127,15 +129,14 @@ export default async function FirmReviewsPage({
   const firm = await getFirm(slug);
   if (!firm) notFound();
 
-  const [reviews, summary, leaderboard] = await Promise.all([
-    getFirmReviews(slug),
+  const [reviews, summary, rank] = await Promise.all([
+    getFirmReviews(slug, 1),
     getReviewSummary(slug),
-    getActiveLeaderboard(),
+    getFirmRank(slug),
   ]);
-  const rank = leaderboard.find((e) => e.slug === slug)?.rank;
   const avg = summary.average.toFixed(1);
+  const totalPages = Math.max(1, Math.ceil(summary.count / REVIEWS_PER_PAGE));
   const shownCount = reviews.length;
-  const truncated = shownCount < summary.count;
 
   const maxBar = Math.max(1, ...Object.values(summary.distribution));
   const faqs = buildFaqs(firm.name, summary, rank);
@@ -350,9 +351,9 @@ export default async function FirmReviewsPage({
                   ? `${summary.count} trader review${summary.count === 1 ? "" : "s"} of ${firm.name}`
                   : `Trader reviews of ${firm.name}`}
               </h2>
-              {truncated && (
+              {totalPages > 1 && (
                 <p className="mt-1 text-[13px] leading-[19px] text-body-mid">
-                  Showing the {shownCount} most recent.
+                  Showing 1–{shownCount} of {summary.count}, newest first · page 1 of {totalPages}
                 </p>
               )}
 
@@ -373,55 +374,10 @@ export default async function FirmReviewsPage({
                   </a>
                 </div>
               ) : (
-                <ul className="mt-4 flex flex-col gap-4">
-                  {reviews.map((review) => (
-                    <li
-                      key={review.id}
-                      id={`review-${review.id}`}
-                      className="scroll-mt-24 rounded-md bg-canvas p-6 target:ring-2 target:ring-primary"
-                    >
-                      <article>
-                        <div className="flex items-start justify-between gap-4">
-                          <div className="flex items-center gap-3">
-                            <span
-                              className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-canvas-soft text-[14px] font-semibold text-ink"
-                              aria-hidden="true"
-                            >
-                              {initials(review.authorName)}
-                            </span>
-                            <div>
-                              <p className="text-[15px] font-semibold leading-[21px] text-ink">
-                                {review.authorName}
-                              </p>
-                              <p className="text-[13px] leading-[19px] text-body-mid">
-                                {review.traderType} ·{" "}
-                                <a
-                                  href={`#review-${review.id}`}
-                                  className="hover:text-primary"
-                                  aria-label={`Permalink to this ${firm.name} review`}
-                                >
-                                  <time dateTime={review.createdAt.slice(0, 10)}>
-                                    {formatDate(review.createdAt)}
-                                  </time>
-                                </a>
-                              </p>
-                            </div>
-                          </div>
-                          <Stars value={review.rating} size={16} className="mt-1" />
-                        </div>
-
-                        {review.title && (
-                          <h3 className="mt-4 text-[16px] font-semibold leading-[24px] text-ink">
-                            {review.title}
-                          </h3>
-                        )}
-                        <p className="mt-2 whitespace-pre-line text-[15px] leading-[24px] text-body">
-                          {review.body}
-                        </p>
-                      </article>
-                    </li>
-                  ))}
-                </ul>
+                <>
+                  <ReviewList reviews={reviews} firmName={firm.name} />
+                  <ReviewPagination slug={slug} current={1} totalPages={totalPages} />
+                </>
               )}
             </section>
           </div>

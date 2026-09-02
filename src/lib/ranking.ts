@@ -1,3 +1,4 @@
+import { cache } from "react";
 import { connectDB } from "@/lib/db";
 import { PropFirm } from "@/lib/models/PropFirm";
 import { Payment } from "@/lib/models/Payment";
@@ -13,12 +14,16 @@ export type LeaderboardEntry = {
   bidAmount: number;
 };
 
-// Not wrapped in unstable_cache: in this Next.js version it returned stale
-// results when called from a Route Handler vs. a Server Component (same
-// cache key, different callers, inconsistent data — broke /api/leaderboard).
-// Caching instead happens at the page level (`revalidate` + revalidatePath
-// in cache.ts) and via the HTTP Cache-Control header on /api/leaderboard.
-export async function getActiveLeaderboard(): Promise<LeaderboardEntry[]> {
+// Deliberately not `unstable_cache` (persistent, cross-request): in this
+// Next.js version it returned stale results when the same key was hit from a
+// Route Handler vs. a Server Component, which broke /api/leaderboard. React's
+// `cache()` is different — request-scoped memoisation only — so it just
+// collapses the repeat calls within one render (this page, the firm page, and
+// the homepage all call it) without any cross-request staleness. Page-level
+// `revalidate` + revalidatePath still handle the actual caching.
+export const getActiveLeaderboard = cache(async function getActiveLeaderboard(): Promise<
+  LeaderboardEntry[]
+> {
   await connectDB();
   const firms = await PropFirm.find({ status: "active" })
     .sort({ currentBidAmount: -1, updatedAt: 1 })
@@ -34,7 +39,35 @@ export async function getActiveLeaderboard(): Promise<LeaderboardEntry[]> {
     description: firm.description || "",
     bidAmount: firm.currentBidAmount,
   }));
-}
+});
+
+// Just the leaderboard rank of one firm, without loading every firm doc.
+// Two counts against the { status, currentBidAmount } index: firms bidding
+// more, plus firms tied on the bid but listed earlier (updatedAt asc is the
+// leaderboard's tie-break).
+export const getFirmRank = cache(async function getFirmRank(
+  slug: string
+): Promise<number | undefined> {
+  await connectDB();
+  const firm = await PropFirm.findOne({ slug, status: "active" })
+    .select("currentBidAmount updatedAt")
+    .lean();
+  if (!firm) return undefined;
+
+  const [higher, tiedAhead] = await Promise.all([
+    PropFirm.countDocuments({
+      status: "active",
+      currentBidAmount: { $gt: firm.currentBidAmount },
+    }),
+    PropFirm.countDocuments({
+      status: "active",
+      currentBidAmount: firm.currentBidAmount,
+      updatedAt: { $lt: firm.updatedAt },
+    }),
+  ]);
+
+  return higher + tiedAhead + 1;
+});
 
 export type PublicStats = {
   activeFirms: number;
