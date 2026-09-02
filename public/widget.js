@@ -73,13 +73,23 @@
   st.textContent =
     ":host{all:initial;contain:content}" +
     "*{box-sizing:border-box}" +
-    ".tm-card{transition:transform .15s ease,box-shadow .15s ease,border-color .15s ease;text-decoration:none}" +
+    ".tm-card{text-decoration:none;transition:transform .15s ease,box-shadow .15s ease,border-color .15s ease;animation:tm-in .5s cubic-bezier(.2,.7,.2,1) both}" +
     ".tm-card:hover{transform:translateY(-2px);border-color:" +
     PRIMARY +
     ";box-shadow:" +
     hoverShadow +
     "}" +
-    "@media (prefers-reduced-motion:reduce){*{transition:none!important}}";
+    ".tm-badge{animation:tm-pop .55s cubic-bezier(.2,1.5,.45,1) .3s both}" +
+    ".tm-stars>span{animation:tm-star .4s ease both}" +
+    ".tm-sheen{position:absolute;inset:0;overflow:hidden;border-radius:inherit;pointer-events:none}" +
+    ".tm-sheen::after{content:'';position:absolute;top:0;bottom:0;left:0;width:45%;" +
+    "background:linear-gradient(90deg,transparent,rgba(255,255,255,.5),transparent);" +
+    "transform:translateX(-160%) skewX(-18deg);animation:tm-sheen 1.15s ease .45s 1 both}" +
+    "@keyframes tm-in{from{opacity:0;transform:translateY(7px) scale(.98)}to{opacity:1;transform:none}}" +
+    "@keyframes tm-pop{0%{transform:scale(0)}70%{transform:scale(1.18)}100%{transform:scale(1)}}" +
+    "@keyframes tm-star{from{opacity:0;transform:scale(.4)}to{opacity:1;transform:none}}" +
+    "@keyframes tm-sheen{to{transform:translateX(320%) skewX(-18deg)}}" +
+    "@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}";
   root.appendChild(st);
 
   function el(tag, props, children) {
@@ -152,46 +162,47 @@
     ]);
   }
 
-  // Rank chip: a rounded-orange square with "#N" — top-3 get a soft ring.
-  function rankChip(rank, size) {
-    var s = size || 44;
-    var box = el("span", {
+  // Small rank badge that sits on the corner of the firm mark — like a
+  // verification / notification badge rather than a big blocky tile.
+  function rankBadge(rank, size, ringColor) {
+    var s = size || 22;
+    var wide = rank > 9;
+    return el("span", {
+      text: "#" + rank,
+      class: "tm-badge",
       style: {
-        position: "relative",
-        display: "inline-flex",
+        position: "absolute",
+        right: "-6px",
+        bottom: "-6px",
+        display: "flex",
         alignItems: "center",
         justifyContent: "center",
-        width: s + "px",
+        minWidth: s + "px",
         height: s + "px",
-        borderRadius: s * 0.24 + "px",
-        background: rank ? PRIMARY : c.mute,
+        padding: wide ? "0 5px" : "0",
+        borderRadius: "999px",
+        background: PRIMARY,
         color: ON_PRIMARY,
-        flexShrink: "0",
         fontFamily: BRAND_FONT_STACK,
         fontWeight: "800",
+        fontSize: s * 0.52 + "px",
         lineHeight: "1",
+        boxShadow: "0 0 0 2px " + (ringColor || c.canvas) + ",0 1px 3px rgba(0,0,0,.18)",
+        boxSizing: "content-box",
       },
     });
-    if (rank && rank <= 3) {
-      box.appendChild(
-        el("span", {
-          style: {
-            position: "absolute",
-            inset: "-4px",
-            borderRadius: s * 0.3 + "px",
-            border: "2px solid " + PRIMARY,
-            opacity: "0.35",
-          },
-        })
-      );
+  }
+
+  // Firm logo (or monogram) with the rank badge on its corner.
+  function firmMark(data, size, ringColor) {
+    var wrap = el("span", {
+      style: { position: "relative", display: "inline-flex", flexShrink: "0" },
+    });
+    wrap.appendChild(firmLogo(data, size, Math.round(size * 0.28)));
+    if (data.rank) {
+      wrap.appendChild(rankBadge(data.rank, Math.max(20, Math.round(size * 0.46)), ringColor));
     }
-    box.appendChild(
-      el("span", {
-        text: rank ? "#" + rank : "—",
-        style: { fontSize: (rank && rank > 99 ? s * 0.3 : s * 0.38) + "px" },
-      })
-    );
-    return box;
+    return wrap;
   }
 
   // Trustpilot-style star tile row, only shown when the firm has a rating.
@@ -220,7 +231,10 @@
     return svg;
   }
   function stars(value, size) {
-    var row = el("span", { style: { display: "inline-flex", gap: "3px", alignItems: "center" } });
+    var row = el("span", {
+      class: "tm-stars",
+      style: { display: "inline-flex", gap: "3px", alignItems: "center" },
+    });
     for (var i = 0; i < 5; i++) {
       var frac = Math.max(0, Math.min(1, value - i));
       var wrap = el("span", {
@@ -229,6 +243,7 @@
           display: "inline-block",
           width: size + "px",
           height: size + "px",
+          animationDelay: 0.35 + i * 0.07 + "s",
         },
       });
       wrap.appendChild(starFace(size, frac >= 1 ? PRIMARY : c.mute));
@@ -319,6 +334,7 @@
   function firmLogo(data, size, radius) {
     var tile = el("span", {
       style: {
+        position: "relative",
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
@@ -347,6 +363,7 @@
         })
       );
     }
+    tile.appendChild(el("span", { class: "tm-sheen" }));
     return tile;
   }
 
@@ -361,16 +378,23 @@
       });
       card.href = data.profileUrl;
       card.appendChild(
-        el("span", { style: { display: "flex", alignItems: "center", gap: "10px" } }, [
-          rankChip(data.rank, 38),
-          el("span", { style: { display: "flex", flexDirection: "column" } }, [
+        el("span", { style: { display: "flex", alignItems: "center", gap: "12px" } }, [
+          firmMark(data, 40, c.canvasSoft),
+          el("span", { style: { display: "flex", flexDirection: "column", minWidth: "0" } }, [
             el("span", {
-              text: data.rank ? "Ranked #" + data.rank : "Listed firm",
-              style: { fontSize: "14px", fontWeight: "800", color: c.ink },
+              text: data.name,
+              style: {
+                fontSize: "14px",
+                fontWeight: "800",
+                color: c.ink,
+                whiteSpace: "nowrap",
+                overflow: "hidden",
+                textOverflow: "ellipsis",
+              },
             }),
             el("span", {
-              text: "prop firm",
-              style: { fontSize: "11px", color: c.bodyMid, textTransform: "uppercase", letterSpacing: "0.06em" },
+              text: data.rank ? "#" + data.rank + " ranked prop firm" : "Listed prop firm",
+              style: { fontSize: "11px", fontWeight: "600", color: c.body },
             }),
           ]),
         ])
@@ -391,8 +415,8 @@
       card.href = data.profileUrl;
 
       card.appendChild(
-        el("span", { style: { display: "flex", alignItems: "center", gap: "12px" } }, [
-          rankChip(data.rank, 46),
+        el("span", { style: { display: "flex", alignItems: "center", gap: "13px" } }, [
+          firmMark(data, 46, c.canvas),
           el("span", { style: { display: "flex", flexDirection: "column", gap: "2px", minWidth: "0" } }, [
             el("span", {
               text: data.name,
@@ -450,7 +474,7 @@
         padding: "12px 16px",
       });
       card.href = data.profileUrl;
-      card.appendChild(rankChip(data.rank, 42));
+      card.appendChild(firmMark(data, 42, c.canvas));
       card.appendChild(
         el("span", { style: { display: "flex", flexDirection: "column", gap: "2px", minWidth: "0", flex: "1" } }, [
           el("span", {
@@ -489,14 +513,13 @@
       card.appendChild(
         el("span", { text: "×", style: { fontSize: "13px", fontWeight: "700", color: c.bodyMid } })
       );
-      card.appendChild(firmLogo(data, 26, 6));
+      card.appendChild(firmMark(data, 28, c.canvasSoft));
       card.appendChild(
         el("span", { style: { width: "1px", height: "20px", background: c.border } })
       );
-      card.appendChild(rankChip(data.rank, 26));
       card.appendChild(
         el("span", {
-          text: data.rank ? "Ranked" : "Listed",
+          text: data.rank ? "#" + data.rank + " Ranked" : "Listed",
           style: { fontSize: "13px", fontWeight: "800", color: c.ink },
         })
       );
