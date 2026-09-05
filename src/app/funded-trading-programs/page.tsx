@@ -6,16 +6,19 @@ import { FUNDED_PROGRAMS_COPY } from "@/lib/i18n/copy/fundedTradingPrograms";
 import { getActiveLeaderboard } from "@/lib/ranking";
 import { jsonLdScript } from "@/lib/jsonLd";
 import { languageAlternatesFor } from "@/lib/i18n/hreflang";
+import { socialMetadata } from "@/lib/i18n/metadata";
 import { SUPPORTED_LOCALES } from "@/lib/i18n/locales";
 
 export const revalidate = 60;
 
+const BASE = process.env.NEXT_PUBLIC_BASE_URL || "https://tradermarket.online";
 const copy = FUNDED_PROGRAMS_COPY.en;
+const DESCRIPTION =
+  "What a funded trading program actually is, how prop firm evaluations lead to a funded account, and how to tell whether a firm really pays traders after they pass.";
 
 export const metadata: Metadata = {
   title: copy.h1,
-  description:
-    "What a funded trading program actually is, how prop firm evaluations lead to a funded account, and how to tell whether a firm really pays traders after they pass.",
+  description: DESCRIPTION,
   keywords: [
     "funded trading programs",
     "prop firm pay after pass",
@@ -29,8 +32,11 @@ export const metadata: Metadata = {
     canonical: "/funded-trading-programs",
     languages: languageAlternatesFor("/funded-trading-programs", FUNDED_PROGRAMS_COPY),
   },
-  openGraph: { title: copy.h1, url: "/funded-trading-programs" },
-  twitter: { title: copy.h1 },
+  ...socialMetadata({
+    path: "/funded-trading-programs",
+    title: `${copy.h1} — TraderMarket`,
+    description: DESCRIPTION,
+  }),
 };
 
 const faqJsonLd = {
@@ -46,19 +52,19 @@ const articleJsonLd = {
   "@context": "https://schema.org",
   "@type": "Article",
   headline: copy.h1,
-  mainEntityOfPage: "https://tradermarket.online/funded-trading-programs",
-  publisher: { "@id": "https://tradermarket.online/#organization" },
+  mainEntityOfPage: `${BASE}/funded-trading-programs`,
+  publisher: { "@id": `${BASE}/#organization` },
 };
 const breadcrumbJsonLd = {
   "@context": "https://schema.org",
   "@type": "BreadcrumbList",
   itemListElement: [
-    { "@type": "ListItem", position: 1, name: "Leaderboard", item: "https://tradermarket.online" },
+    { "@type": "ListItem", position: 1, name: "Leaderboard", item: BASE },
     {
       "@type": "ListItem",
       position: 2,
       name: "Funded Trading Programs",
-      item: "https://tradermarket.online/funded-trading-programs",
+      item: `${BASE}/funded-trading-programs`,
     },
   ],
 };

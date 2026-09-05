@@ -7,26 +7,20 @@ import { getActiveLeaderboard, getPublicStats, minimumBidForPosition } from "@/l
 import { getReviewSummaries } from "@/lib/reviews";
 import { jsonLdScript } from "@/lib/jsonLd";
 import { languageAlternatesFor } from "@/lib/i18n/hreflang";
+import { socialMetadata } from "@/lib/i18n/metadata";
 import { SUPPORTED_LOCALES } from "@/lib/i18n/locales";
 
 export const revalidate = 15;
 
+const TITLE = "TraderMarket — The Prop Firm Leaderboard";
 const DESCRIPTION =
   "TraderMarket is the public prop firm leaderboard. Want a position? Outbid the firm currently holding it — one payment, no subscription. Live rankings updated in real time.";
 
 export const metadata: Metadata = {
-  title: "TraderMarket — The Prop Firm Leaderboard",
+  title: TITLE,
   description: DESCRIPTION,
   alternates: { canonical: "/", languages: languageAlternatesFor("/", HOME_COPY) },
-  openGraph: {
-    title: "TraderMarket — The Prop Firm Leaderboard",
-    description: DESCRIPTION,
-    url: "/",
-  },
-  twitter: {
-    title: "TraderMarket — The Prop Firm Leaderboard",
-    description: DESCRIPTION,
-  },
+  ...socialMetadata({ path: "/", title: TITLE, description: DESCRIPTION }),
 };
 
 export default async function HomePage() {

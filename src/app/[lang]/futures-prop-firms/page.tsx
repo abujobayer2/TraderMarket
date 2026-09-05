@@ -8,6 +8,7 @@ import { getActiveLeaderboard } from "@/lib/ranking";
 import { getReviewSummaries } from "@/lib/reviews";
 import { jsonLdScript } from "@/lib/jsonLd";
 import { languageAlternatesFor } from "@/lib/i18n/hreflang";
+import { socialMetadata } from "@/lib/i18n/metadata";
 import { isLocale, SUPPORTED_LOCALES, type Locale } from "@/lib/i18n/locales";
 
 const BASE = process.env.NEXT_PUBLIC_BASE_URL || "https://tradermarket.online";
@@ -22,10 +23,18 @@ export async function generateMetadata({ params }: { params: Promise<{ lang: str
   const copy = FUTURES_COPY[lang];
   return {
     title: copy.h1,
+    description: copy.intro,
     alternates: {
       canonical: `/${lang}/futures-prop-firms`,
       languages: languageAlternatesFor("/futures-prop-firms", FUTURES_COPY),
     },
+    ...socialMetadata({
+      path: "/futures-prop-firms",
+      locale: lang as Locale,
+      title: `${copy.h1} — TraderMarket`,
+      description: copy.intro,
+      type: "article",
+    }),
   };
 }
 

@@ -11,6 +11,7 @@ import { PropFirm } from "@/lib/models/PropFirm";
 import { getFirmRank } from "@/lib/ranking";
 import { getFirmReviews, getReviewSummary, REVIEWS_PER_PAGE } from "@/lib/reviews";
 import { jsonLdScript } from "@/lib/jsonLd";
+import { socialMetadata } from "@/lib/i18n/metadata";
 import { ReviewList, ReviewPagination } from "../../ReviewList";
 
 export const revalidate = 60;
@@ -69,8 +70,11 @@ export async function generateMetadata({
     title,
     description,
     alternates: { canonical: url },
-    openGraph: { type: "website", title: `${title} — TraderMarket`, description, url },
-    twitter: { title: `${title} — TraderMarket`, description },
+    ...socialMetadata({
+      path: `/firm/${slug}/reviews/page/${page}`,
+      title: `${title} — TraderMarket`,
+      description,
+    }),
   };
 }
 

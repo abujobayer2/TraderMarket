@@ -10,6 +10,7 @@ import { getReviewSummaries } from "@/lib/reviews";
 import { jsonLdScript } from "@/lib/jsonLd";
 import { getCountry, relatedCountries } from "@/lib/countries";
 import { languageAlternates } from "@/lib/i18n/hreflang";
+import { socialMetadata } from "@/lib/i18n/metadata";
 import { isLocale, LOCALE_META, type Locale } from "@/lib/i18n/locales";
 
 const BASE = process.env.NEXT_PUBLIC_BASE_URL || "https://tradermarket.online";
@@ -58,8 +59,13 @@ export async function generateMetadata({
       canonical: `/${lang}/prop-firms/${slug}`,
       languages: languageAlternates(`/prop-firms/${slug}`, [resolved.locale]),
     },
-    openGraph: { type: "article", title, description, url: `/${lang}/prop-firms/${slug}` },
-    twitter: { title, description },
+    ...socialMetadata({
+      path: `/prop-firms/${slug}`,
+      locale: resolved.locale,
+      title: `${title} — TraderMarket`,
+      description,
+      type: "article",
+    }),
   };
 }
 

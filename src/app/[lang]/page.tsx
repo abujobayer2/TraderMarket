@@ -8,6 +8,7 @@ import { getActiveLeaderboard, getPublicStats, minimumBidForPosition } from "@/l
 import { getReviewSummaries } from "@/lib/reviews";
 import { jsonLdScript } from "@/lib/jsonLd";
 import { languageAlternatesFor } from "@/lib/i18n/hreflang";
+import { socialMetadata } from "@/lib/i18n/metadata";
 import { isLocale, SUPPORTED_LOCALES, type Locale } from "@/lib/i18n/locales";
 
 export async function generateStaticParams() {
@@ -18,9 +19,17 @@ export async function generateMetadata({ params }: { params: Promise<{ lang: str
   const { lang } = await params;
   if (!isLocale(lang) || !HOME_COPY[lang]) return { title: "Not Found" };
   const copy = HOME_COPY[lang];
+  const description = copy.introTemplate
+    .replace("{leaderboard}", copy.introLeaderboardLink)
+    .replace("{reviews}", copy.introReviewsLink)
+    .replace("{forex}", copy.introForexLink)
+    .replace("{futures}", copy.introFuturesLink)
+    .replace("{crypto}", copy.introCryptoLink);
   return {
     title: copy.h1,
+    description,
     alternates: { canonical: `/${lang}`, languages: languageAlternatesFor("/", HOME_COPY) },
+    ...socialMetadata({ path: "/", locale: lang as Locale, title: `${copy.h1} — TraderMarket`, description }),
   };
 }
 

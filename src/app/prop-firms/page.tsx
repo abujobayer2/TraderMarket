@@ -6,6 +6,7 @@ import { PROP_FIRMS_HUB_COPY } from "@/lib/i18n/copy/propFirmsHub";
 import { jsonLdScript } from "@/lib/jsonLd";
 import { COUNTRIES } from "@/lib/countries";
 import { languageAlternatesFor } from "@/lib/i18n/hreflang";
+import { socialMetadata } from "@/lib/i18n/metadata";
 import { SUPPORTED_LOCALES } from "@/lib/i18n/locales";
 
 export const revalidate = 3600;
@@ -27,8 +28,7 @@ export const metadata: Metadata = {
     "funded trading account country",
   ],
   alternates: { canonical: "/prop-firms", languages: languageAlternatesFor("/prop-firms", PROP_FIRMS_HUB_COPY) },
-  openGraph: { type: "website", title: TITLE, description: DESCRIPTION, url: "/prop-firms" },
-  twitter: { title: TITLE, description: DESCRIPTION },
+  ...socialMetadata({ path: "/prop-firms", title: TITLE, description: DESCRIPTION }),
 };
 
 const itemListJsonLd = {

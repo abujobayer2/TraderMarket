@@ -5,6 +5,7 @@ import { RulesContent } from "@/components/content/RulesContent";
 import { RULES_COPY } from "@/lib/i18n/copy/rules";
 import { CHROME_COPY } from "@/lib/i18n/copy/chrome";
 import { languageAlternatesFor } from "@/lib/i18n/hreflang";
+import { socialMetadata } from "@/lib/i18n/metadata";
 import { isLocale, SUPPORTED_LOCALES, type Locale } from "@/lib/i18n/locales";
 
 export async function generateStaticParams() {
@@ -14,9 +15,17 @@ export async function generateStaticParams() {
 export async function generateMetadata({ params }: { params: Promise<{ lang: string }> }) {
   const { lang } = await params;
   if (!isLocale(lang) || !RULES_COPY[lang]) return { title: "Not Found" };
+  const copy = RULES_COPY[lang];
   return {
-    title: "Rules",
+    title: copy.h1,
+    description: copy.intro,
     alternates: { canonical: `/${lang}/rules`, languages: languageAlternatesFor("/rules", RULES_COPY) },
+    ...socialMetadata({
+      path: "/rules",
+      locale: lang as Locale,
+      title: `${copy.h1} — TraderMarket`,
+      description: copy.intro,
+    }),
   };
 }
 

@@ -8,6 +8,7 @@ import { getActiveLeaderboard, getPublicStats } from "@/lib/ranking";
 import { getReviewSummaries } from "@/lib/reviews";
 import { jsonLdScript } from "@/lib/jsonLd";
 import { languageAlternatesFor } from "@/lib/i18n/hreflang";
+import { socialMetadata } from "@/lib/i18n/metadata";
 import { isLocale, LOCALE_META, SUPPORTED_LOCALES, type Locale } from "@/lib/i18n/locales";
 
 export async function generateStaticParams() {
@@ -20,10 +21,17 @@ export async function generateMetadata({ params }: { params: Promise<{ lang: str
   const copy = BEST_FIRMS_COPY[lang];
   return {
     title: copy.h1,
+    description: copy.intro,
     alternates: {
       canonical: `/${lang}/best-prop-trading-firms`,
       languages: languageAlternatesFor("/best-prop-trading-firms", BEST_FIRMS_COPY),
     },
+    ...socialMetadata({
+      path: "/best-prop-trading-firms",
+      locale: lang as Locale,
+      title: `${copy.h1} — TraderMarket`,
+      description: copy.intro,
+    }),
   };
 }
 

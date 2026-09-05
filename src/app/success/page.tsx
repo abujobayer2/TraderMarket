@@ -6,6 +6,7 @@ import { SuccessStatus } from "./SuccessStatus";
 export const metadata = {
   title: "Payment Status",
   robots: { index: false, follow: false },
+  alternates: { canonical: "/success" },
 };
 
 export default function SuccessPage() {

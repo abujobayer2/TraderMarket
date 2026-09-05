@@ -7,6 +7,7 @@ import { getActiveLeaderboard, getPublicStats } from "@/lib/ranking";
 import { getReviewSummaries } from "@/lib/reviews";
 import { jsonLdScript } from "@/lib/jsonLd";
 import { languageAlternatesFor } from "@/lib/i18n/hreflang";
+import { socialMetadata } from "@/lib/i18n/metadata";
 import { SUPPORTED_LOCALES } from "@/lib/i18n/locales";
 
 export const revalidate = 15;
@@ -23,8 +24,11 @@ export const metadata: Metadata = {
     canonical: "/best-prop-trading-firms",
     languages: languageAlternatesFor("/best-prop-trading-firms", BEST_FIRMS_COPY),
   },
-  openGraph: { title: `${TITLE} — TraderMarket`, description: DESCRIPTION, url: "/best-prop-trading-firms" },
-  twitter: { title: `${TITLE} — TraderMarket`, description: DESCRIPTION },
+  ...socialMetadata({
+    path: "/best-prop-trading-firms",
+    title: `${TITLE} — TraderMarket`,
+    description: DESCRIPTION,
+  }),
 };
 
 const itemListJsonLd = (leaderboard: Awaited<ReturnType<typeof getActiveLeaderboard>>) => ({

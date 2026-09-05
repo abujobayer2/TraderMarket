@@ -1,19 +1,17 @@
 import { Suspense } from "react";
 import { Nav } from "@/components/Nav";
 import { Footer } from "@/components/Footer";
+import { socialMetadata } from "@/lib/i18n/metadata";
 import { ListWizard } from "./ListWizard";
+
+const DESCRIPTION =
+  "Submit your prop firm to TraderMarket, choose a leaderboard position, and pay once with crypto to claim your rank.";
 
 export const metadata = {
   title: "List Your Prop Firm",
-  description:
-    "Submit your prop firm to TraderMarket, choose a leaderboard position, and pay once with crypto to claim your rank.",
+  description: DESCRIPTION,
   alternates: { canonical: "/list" },
-  openGraph: {
-    title: "List Your Prop Firm — TraderMarket",
-    description:
-      "Submit your prop firm to TraderMarket, choose a leaderboard position, and pay once with crypto to claim your rank.",
-    url: "/list",
-  },
+  ...socialMetadata({ path: "/list", title: "List Your Prop Firm — TraderMarket", description: DESCRIPTION }),
 };
 
 export default function ListPage() {

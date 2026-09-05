@@ -3,13 +3,17 @@ import { Footer } from "@/components/Footer";
 import { RulesContent } from "@/components/content/RulesContent";
 import { RULES_COPY } from "@/lib/i18n/copy/rules";
 import { languageAlternatesFor } from "@/lib/i18n/hreflang";
+import { socialMetadata } from "@/lib/i18n/metadata";
 import { SUPPORTED_LOCALES } from "@/lib/i18n/locales";
+
+const DESCRIPTION =
+  "How ranking, bidding, and listings work on TraderMarket — the public prop firm leaderboard.";
 
 export const metadata = {
   title: "Rules",
-  description:
-    "How ranking, bidding, and listings work on TraderMarket — the public prop firm leaderboard.",
+  description: DESCRIPTION,
   alternates: { canonical: "/rules", languages: languageAlternatesFor("/rules", RULES_COPY) },
+  ...socialMetadata({ path: "/rules", title: "Rules — TraderMarket", description: DESCRIPTION }),
 };
 
 export default function RulesPage() {

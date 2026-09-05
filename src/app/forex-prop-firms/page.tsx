@@ -7,17 +7,19 @@ import { getActiveLeaderboard } from "@/lib/ranking";
 import { getReviewSummaries } from "@/lib/reviews";
 import { jsonLdScript } from "@/lib/jsonLd";
 import { languageAlternatesFor } from "@/lib/i18n/hreflang";
+import { socialMetadata } from "@/lib/i18n/metadata";
 import { SUPPORTED_LOCALES } from "@/lib/i18n/locales";
 
 export const revalidate = 60;
 
 const BASE = process.env.NEXT_PUBLIC_BASE_URL || "https://tradermarket.online";
 const copy = FOREX_COPY.en;
+const DESCRIPTION =
+  "A trader's guide to forex prop firms: how funded forex evaluations work, static vs. trailing drawdown, leverage and news-trading rules, MT4/MT5/cTrader platforms, and how to check a firm actually pays out.";
 
 export const metadata: Metadata = {
   title: copy.h1,
-  description:
-    "A trader's guide to forex prop firms: how funded forex evaluations work, static vs. trailing drawdown, leverage and news-trading rules, MT4/MT5/cTrader platforms, and how to check a firm actually pays out.",
+  description: DESCRIPTION,
   keywords: [
     "forex prop firms",
     "best forex prop firms",
@@ -28,8 +30,12 @@ export const metadata: Metadata = {
     "MT5 prop firm",
   ],
   alternates: { canonical: "/forex-prop-firms", languages: languageAlternatesFor("/forex-prop-firms", FOREX_COPY) },
-  openGraph: { type: "article", title: copy.h1, url: "/forex-prop-firms" },
-  twitter: { title: copy.h1 },
+  ...socialMetadata({
+    path: "/forex-prop-firms",
+    title: `${copy.h1} — TraderMarket`,
+    description: DESCRIPTION,
+    type: "article",
+  }),
 };
 
 const articleJsonLd = {

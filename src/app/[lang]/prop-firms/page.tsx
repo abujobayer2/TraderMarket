@@ -7,6 +7,7 @@ import { CHROME_COPY } from "@/lib/i18n/copy/chrome";
 import { jsonLdScript } from "@/lib/jsonLd";
 import { COUNTRIES } from "@/lib/countries";
 import { languageAlternatesFor } from "@/lib/i18n/hreflang";
+import { socialMetadata } from "@/lib/i18n/metadata";
 import { isLocale, SUPPORTED_LOCALES, type Locale } from "@/lib/i18n/locales";
 
 const BASE = process.env.NEXT_PUBLIC_BASE_URL || "https://tradermarket.online";
@@ -21,7 +22,14 @@ export async function generateMetadata({ params }: { params: Promise<{ lang: str
   const copy = PROP_FIRMS_HUB_COPY[lang];
   return {
     title: copy.h1,
+    description: copy.intro,
     alternates: { canonical: `/${lang}/prop-firms`, languages: languageAlternatesFor("/prop-firms", PROP_FIRMS_HUB_COPY) },
+    ...socialMetadata({
+      path: "/prop-firms",
+      locale: lang as Locale,
+      title: `${copy.h1} — TraderMarket`,
+      description: copy.intro,
+    }),
   };
 }
 

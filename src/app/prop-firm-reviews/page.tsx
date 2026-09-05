@@ -7,6 +7,7 @@ import { getActiveLeaderboard } from "@/lib/ranking";
 import { getReviewSummaries } from "@/lib/reviews";
 import { jsonLdScript } from "@/lib/jsonLd";
 import { languageAlternatesFor } from "@/lib/i18n/hreflang";
+import { socialMetadata } from "@/lib/i18n/metadata";
 import { SUPPORTED_LOCALES } from "@/lib/i18n/locales";
 
 export const revalidate = 60;
@@ -30,8 +31,7 @@ export const metadata: Metadata = {
     "best rated prop firms",
   ],
   alternates: { canonical: "/prop-firm-reviews", languages: languageAlternatesFor("/prop-firm-reviews", PROP_FIRM_REVIEWS_COPY) },
-  openGraph: { type: "website", title: `${TITLE} — TraderMarket`, description: DESCRIPTION, url: "/prop-firm-reviews" },
-  twitter: { title: `${TITLE} — TraderMarket`, description: DESCRIPTION },
+  ...socialMetadata({ path: "/prop-firm-reviews", title: `${TITLE} — TraderMarket`, description: DESCRIPTION }),
 };
 
 const faqJsonLd = {

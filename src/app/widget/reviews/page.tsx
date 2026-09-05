@@ -3,13 +3,21 @@ import Link from "next/link";
 import { Nav } from "@/components/Nav";
 import { Footer } from "@/components/Footer";
 import { jsonLdScript } from "@/lib/jsonLd";
+import { socialMetadata } from "@/lib/i18n/metadata";
 import { ReviewsWidgetGenerator } from "./ReviewsWidgetGenerator";
+
+const DESCRIPTION =
+  "Embed your TraderMarket trader reviews on your own prop firm site. Nine widget styles — micro star, mini, card, quote, list, grid, carousel, and a review collector — free, auto-updating, and in the TraderMarket brand style.";
 
 export const metadata = {
   title: "Reviews Widget",
-  description:
-    "Embed your TraderMarket trader reviews on your own prop firm site. Nine widget styles — micro star, mini, card, quote, list, grid, carousel, and a review collector — free, auto-updating, and in the TraderMarket brand style.",
+  description: DESCRIPTION,
   alternates: { canonical: "/widget/reviews" },
+  ...socialMetadata({
+    path: "/widget/reviews",
+    title: "Reviews Widget — TraderMarket",
+    description: DESCRIPTION,
+  }),
 };
 
 const faqs = [

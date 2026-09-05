@@ -16,6 +16,7 @@ import {
   type ReviewSummary,
 } from "@/lib/reviews";
 import { jsonLdScript } from "@/lib/jsonLd";
+import { socialMetadata } from "@/lib/i18n/metadata";
 import { ReviewForm } from "./ReviewForm";
 import { ReviewList, ReviewPagination } from "./ReviewList";
 
@@ -110,13 +111,11 @@ export async function generateMetadata({
       `${firm.name} prop firm`,
     ],
     alternates: { canonical: `/firm/${slug}/reviews` },
-    openGraph: {
-      type: "website",
+    ...socialMetadata({
+      path: `/firm/${slug}/reviews`,
       title: `${title} — TraderMarket`,
       description,
-      url: `/firm/${slug}/reviews`,
-    },
-    twitter: { title: `${title} — TraderMarket`, description },
+    }),
   };
 }
 

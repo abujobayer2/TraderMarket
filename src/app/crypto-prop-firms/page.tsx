@@ -7,17 +7,19 @@ import { getActiveLeaderboard } from "@/lib/ranking";
 import { getReviewSummaries } from "@/lib/reviews";
 import { jsonLdScript } from "@/lib/jsonLd";
 import { languageAlternatesFor } from "@/lib/i18n/hreflang";
+import { socialMetadata } from "@/lib/i18n/metadata";
 import { SUPPORTED_LOCALES } from "@/lib/i18n/locales";
 
 export const revalidate = 60;
 
 const BASE = process.env.NEXT_PUBLIC_BASE_URL || "https://tradermarket.online";
 const copy = CRYPTO_COPY.en;
+const DESCRIPTION =
+  "A trader's guide to crypto prop firms: 24/7 markets, perpetual vs. spot evaluations, drawdown and leverage rules, why payout track records are shorter, the regulatory gap, and how to vet a crypto-native funded program.";
 
 export const metadata: Metadata = {
   title: copy.h1,
-  description:
-    "A trader's guide to crypto prop firms: 24/7 markets, perpetual vs. spot evaluations, drawdown and leverage rules, why payout track records are shorter, the regulatory gap, and how to vet a crypto-native funded program.",
+  description: DESCRIPTION,
   keywords: [
     "crypto prop firms",
     "best crypto prop firms",
@@ -28,8 +30,12 @@ export const metadata: Metadata = {
     "crypto perpetuals prop firm",
   ],
   alternates: { canonical: "/crypto-prop-firms", languages: languageAlternatesFor("/crypto-prop-firms", CRYPTO_COPY) },
-  openGraph: { type: "article", title: copy.h1, url: "/crypto-prop-firms" },
-  twitter: { title: copy.h1 },
+  ...socialMetadata({
+    path: "/crypto-prop-firms",
+    title: `${copy.h1} — TraderMarket`,
+    description: DESCRIPTION,
+    type: "article",
+  }),
 };
 
 const articleJsonLd = {

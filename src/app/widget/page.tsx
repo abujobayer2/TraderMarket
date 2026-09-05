@@ -3,13 +3,17 @@ import Link from "next/link";
 import { Nav } from "@/components/Nav";
 import { Footer } from "@/components/Footer";
 import { jsonLdScript } from "@/lib/jsonLd";
+import { socialMetadata } from "@/lib/i18n/metadata";
 import { WidgetGenerator } from "./WidgetGenerator";
+
+const DESCRIPTION =
+  "Embed a live TraderMarket ranking badge on your prop firm's website. Free, auto-updating, and links straight to your profile.";
 
 export const metadata = {
   title: "Ranking Widget",
-  description:
-    "Embed a live TraderMarket ranking badge on your prop firm's website. Free, auto-updating, and links straight to your profile.",
+  description: DESCRIPTION,
   alternates: { canonical: "/widget" },
+  ...socialMetadata({ path: "/widget", title: "Ranking Widget — TraderMarket", description: DESCRIPTION }),
 };
 
 const faqs = [

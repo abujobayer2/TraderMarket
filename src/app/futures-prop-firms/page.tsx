@@ -7,17 +7,19 @@ import { getActiveLeaderboard } from "@/lib/ranking";
 import { getReviewSummaries } from "@/lib/reviews";
 import { jsonLdScript } from "@/lib/jsonLd";
 import { languageAlternatesFor } from "@/lib/i18n/hreflang";
+import { socialMetadata } from "@/lib/i18n/metadata";
 import { SUPPORTED_LOCALES } from "@/lib/i18n/locales";
 
 export const revalidate = 60;
 
 const BASE = process.env.NEXT_PUBLIC_BASE_URL || "https://tradermarket.online";
 const copy = FUTURES_COPY.en;
+const DESCRIPTION =
+  "A trader's guide to futures prop firms: trailing drawdown, daily loss limits, no-overnight rules, CME data fees, Rithmic/Tradovate/NinjaTrader platforms, payout consistency rules, and how to vet a firm before you buy.";
 
 export const metadata: Metadata = {
   title: copy.h1,
-  description:
-    "A trader's guide to futures prop firms: trailing drawdown, daily loss limits, no-overnight rules, CME data fees, Rithmic/Tradovate/NinjaTrader platforms, payout consistency rules, and how to vet a firm before you buy.",
+  description: DESCRIPTION,
   keywords: [
     "futures prop firms",
     "best futures prop firms",
@@ -28,8 +30,12 @@ export const metadata: Metadata = {
     "Rithmic prop firm",
   ],
   alternates: { canonical: "/futures-prop-firms", languages: languageAlternatesFor("/futures-prop-firms", FUTURES_COPY) },
-  openGraph: { type: "article", title: copy.h1, url: "/futures-prop-firms" },
-  twitter: { title: copy.h1 },
+  ...socialMetadata({
+    path: "/futures-prop-firms",
+    title: `${copy.h1} — TraderMarket`,
+    description: DESCRIPTION,
+    type: "article",
+  }),
 };
 
 const articleJsonLd = {

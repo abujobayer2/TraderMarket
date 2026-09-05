@@ -9,6 +9,7 @@ import { getReviewSummaries } from "@/lib/reviews";
 import { jsonLdScript } from "@/lib/jsonLd";
 import { COUNTRIES, getCountry, relatedCountries } from "@/lib/countries";
 import { languageAlternates } from "@/lib/i18n/hreflang";
+import { socialMetadata } from "@/lib/i18n/metadata";
 import { localeForCountrySlug } from "@/lib/i18n/locales";
 import { COUNTRY_TRANSLATIONS } from "@/lib/i18n/copy/countryPage";
 
@@ -50,8 +51,7 @@ export async function generateMetadata({
       canonical: `/prop-firms/${slug}`,
       languages: languageAlternates(`/prop-firms/${slug}`, matchingLocale ? [matchingLocale] : []),
     },
-    openGraph: { type: "article", title, description, url: `/prop-firms/${slug}` },
-    twitter: { title, description },
+    ...socialMetadata({ path: `/prop-firms/${slug}`, title: `${title} — TraderMarket`, description, type: "article" }),
   };
 }
 

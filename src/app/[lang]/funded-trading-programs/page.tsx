@@ -7,6 +7,7 @@ import { CHROME_COPY } from "@/lib/i18n/copy/chrome";
 import { getActiveLeaderboard } from "@/lib/ranking";
 import { jsonLdScript } from "@/lib/jsonLd";
 import { languageAlternatesFor } from "@/lib/i18n/hreflang";
+import { socialMetadata } from "@/lib/i18n/metadata";
 import { isLocale, SUPPORTED_LOCALES, type Locale } from "@/lib/i18n/locales";
 
 const BASE = process.env.NEXT_PUBLIC_BASE_URL || "https://tradermarket.online";
@@ -21,10 +22,17 @@ export async function generateMetadata({ params }: { params: Promise<{ lang: str
   const copy = FUNDED_PROGRAMS_COPY[lang];
   return {
     title: copy.h1,
+    description: copy.intro,
     alternates: {
       canonical: `/${lang}/funded-trading-programs`,
       languages: languageAlternatesFor("/funded-trading-programs", FUNDED_PROGRAMS_COPY),
     },
+    ...socialMetadata({
+      path: "/funded-trading-programs",
+      locale: lang as Locale,
+      title: `${copy.h1} — TraderMarket`,
+      description: copy.intro,
+    }),
   };
 }
 
