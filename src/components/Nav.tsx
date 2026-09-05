@@ -29,7 +29,7 @@ export function Nav({ locale, copy }: { locale?: Locale; copy?: NavCopy } = {}) 
 
   return (
     <header className="sticky top-0 z-40 bg-canvas/95 backdrop-blur border-b border-ink/10">
-      <div className="mx-auto flex max-w-[1280px] items-center justify-between px-6 py-3">
+      <div className="mx-auto flex max-w-[1280px] items-center justify-between gap-3 px-6 py-3">
         <Link href={prefix || "/"} aria-label="TraderMarket home">
           <Logo />
         </Link>
@@ -53,7 +53,7 @@ export function Nav({ locale, copy }: { locale?: Locale; copy?: NavCopy } = {}) 
         {/* /list is a transactional form, kept English-only — always unprefixed. */}
         <Link
           href="/list"
-          className="rounded-md bg-primary px-6 py-3 text-[18px] font-semibold leading-[27px] text-on-primary transition-colors hover:bg-primary-hover"
+          className="min-w-0 rounded-md bg-primary px-4 py-2 text-center text-[14px] font-semibold leading-[20px] text-on-primary transition-colors hover:bg-primary-hover sm:px-6 sm:py-3 sm:text-[18px] sm:leading-[27px]"
         >
           {t.listYourFirm}
         </Link>
